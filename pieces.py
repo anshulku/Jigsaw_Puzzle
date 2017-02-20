@@ -320,7 +320,7 @@ class pieces:
         #print("------------------------------------------------------- ")
         #print(self.pointD)
         #print("------------------------------------------------------- ")
-        #self.showGraphs()
+        self.showGraphs()
     def setPointOfSides(self,approx,start,end,points):
         while(start != end):
             points.append(approx[start][0])
@@ -606,30 +606,85 @@ class pieces:
     def showImage(self):
             cv2.imshow("Thks dv",self.image)
             cv2.waitKey(0);
+    def showXaxisGraph(self,points,testing = False ):
+        newImageAppro1 = np.zeros((500,500,3), np.uint8)
+        originAngle = self.getAngle(points[0],points[len(points)-1])
+        newPoints = [[10,40]]
+        for i in range(1,len(points)):
+            point1 = points[0]
+            point2 = points[i]
+            angle = self.getAngle(point1,point2)
+            diffAngle = originAngle - angle
+            distance = self.getDistance(point1,point2)
+            newX = 10 + (distance * math.cos(math.radians(diffAngle)))
+            newY = 40 + (distance * math.sin(math.radians(diffAngle)))
+            newPoints.append([newX,newY])
+            
+            #X = Cx + (r * cosine(angle))  
+            #Y = Cy + (r * sine(angle))
+            #/_(x2-x1^2)+(y2-y1^2)
+        print("--------------------")
+        print(newPoints)
+        for i in range(0,len(newPoints)-1):
+            point1 = newPoints[i]
+            point2 = newPoints[i+1]
+            cv2.line(newImageAppro1,(int(point1[0]),int(point1[1])),(int(point2[0]),int(point2[1])), (255,255,255), 1)
+        cv2.imshow("testing 1",newImageAppro1)
+    def getDistance(self,pointA,pointB):
+        return ((pointB[0]-pointA[0]) ** 2 + (pointB[1]-pointA[1]) ** 2 ) ** 0.5
+    #
+    # gets two point and then calclutes the angle between them
+    # and returns the angle in 0 -360
+    #
+    def getAngle(self,pointA,pointB):
+        angle = math.atan2(pointB[1] - pointA[1], pointB[0] - pointA[0]) * 180.0 / math.pi
+        newAngle = angle
+        if(angle<0):
+            newAngle = angle *-1
+        elif(angle != 0):
+            newAngle = 360 -angle
+        else:
+            if(pointB[0]<pointA[0]):
+                newAngle = 180
+            else:
+                newAngle = 0
+        #print("angle (old , new ) = ( ",angle," ; ", newAngle)
+        return newAngle
     def showGraphs(self):
         newImageAppro1 = np.zeros((500,500,3), np.uint8)
         for i in range(0,len(self.pointA)-1):
             point1 = self.pointA[i]
             point2 = self.pointA[i+1]
             cv2.line(newImageAppro1,(point1[0],point1[1]),(point2[0],point2[1]), (255,255,255), 1)
+        print("------------------------------------------------------- ")
         cv2.imshow("graph 1",newImageAppro1)
-
+        self.showXaxisGraph(self.pointA)
+        cv2.waitKey(0);
         newImageAppro2 = np.zeros((500,500,3), np.uint8)
         for i in range(0,len(self.pointB)-1):
             point1 = self.pointB[i]
             point2 = self.pointB[i+1]
             cv2.line(newImageAppro2,(point1[0],point1[1]),(point2[0],point2[1]), (255,255,255), 1)
+        print("------------------------------------------------------- ")
         cv2.imshow("graph 2",newImageAppro2) 
+        self.showXaxisGraph(self.pointB)
+        cv2.waitKey(0);
  
         newImageAppro3 = np.zeros((500,500,3), np.uint8) 
         for i in range(0,len(self.pointC)-1):
             point1 = self.pointC[i]
             point2 = self.pointC[i+1]
             cv2.line(newImageAppro3,(point1[0],point1[1]),(point2[0],point2[1]), (255,255,255), 1)
+        print("------------------------------------------------------- ")
         cv2.imshow("graph 3",newImageAppro3) 
+        self.showXaxisGraph(self.pointC)
+        cv2.waitKey(0);
         newImageAppro4 = np.zeros((500,500,3), np.uint8)  
         for i in range(0,len(self.pointD)-1):
             point1 = self.pointD[i]
             point2 = self.pointD[i+1]
             cv2.line(newImageAppro4,(point1[0],point1[1]),(point2[0],point2[1]), (255,255,255), 1)
+        print("------------------------------------------------------- ")
         cv2.imshow("graph 4",newImageAppro4)
+        self.showXaxisGraph(self.pointD)
+        cv2.waitKey(0);

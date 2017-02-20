@@ -395,7 +395,7 @@ for i in range(0,len(jigsawPieces)):
         centerPieces.append(eachPiece)
         testingk.append(i)
     #print("------------------------------------------------------- ")
-    #eachPiece.showImage()
+    eachPiece.showImage()
 print("------------------------------------------------------- ")
 print(testingi)
 print(testingj)
