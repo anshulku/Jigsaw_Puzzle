@@ -5,6 +5,8 @@ import cv2
 import numpy as np;
 import math
 from pieces import pieces
+from result import result 
+from matching import matching
 # read the image throught an window frame 
 #imports for that
 from tkinter import *
@@ -381,7 +383,14 @@ testingj = []
 testingk = []
 for i in range(0,len(jigsawPieces)):
     eachPiece = jigsawPieces[i]
+    #if(i==4):
+    #    eachPiece.findingcorners(test=True)
+    #else:
     eachPiece.findingcorners()
+    eachPiece.side[0].setsideproperty()
+    eachPiece.side[1].setsideproperty()
+    eachPiece.side[2].setsideproperty()
+    eachPiece.side[3].setsideproperty()
     #print("is corner = ",eachPiece.isCornerPiece)
     #print("is border = ",eachPiece.isBorderPiece)
     #print("is center = ",eachPiece.isCenterPiece)
@@ -394,13 +403,277 @@ for i in range(0,len(jigsawPieces)):
     if(eachPiece.isCenterPiece):
         centerPieces.append(eachPiece)
         testingk.append(i)
+    eachPiece.setdirection()
+
     #print("------------------------------------------------------- ")
-    eachPiece.showImage()
+   # eachPiece.showGraphs()
+
 print("------------------------------------------------------- ")
 print(testingi)
 print(testingj)
 print(testingk)
 print("------------------------------------------------------- ")
-cv2.imshow("Thks dv for working",img)
+result = result(jigsawPieces)
+result
+result.getresult()
+
+#matchingtesting = cornerPieces[0]
+
+##for i in range(0,len(matchingtesting.side)):
+##    side = matchingtesting.side[i]
+##    if(not side.isStraight):
+##        for j in range(0,len(borderPieces)):
+##            borderPiece = borderPieces[j]
+##            for k in range(0,len(borderPiece.side)):
+##                matchSide = borderPiece.side[k]
+##                if(not matchSide.isStraight):
+##                    doesMatch = object.isMatch(side,matchSide)
+##                    if(doesMatch):
+##                        print("The match from this algo is = :: ",j)
+##                    else:
+##                        side.showside("corner side",side.x_axis_PointsApprox)
+##                        matchSide.showside("match side",matchSide.x_axis_PointsApprox)
+##                        matchingtesting.showImage("corner")
+##                        borderPiece.showImage("border")
+##                        cv2.waitKey(0)
+##
+##
+##for i in range(0,len(matchingtesting.side)):
+##    side = matchingtesting.side[i]
+##    nma="corner side "+str(i)
+##    side.showside(nma,side.x_axis_Points,testing=True)
+##print(side.approxPoints)
+##borderPiece = borderPieces[0]
+##matchSide = borderPiece.side[2]
+
+##for k in range(0,len(borderPiece.side)):
+##                matchSide = borderPiece.side[k]
+##                if(not matchSide.isStraight):
+##                    doesMatch = object.isMatch(side,matchSide)
+##                    if(doesMatch):
+##                        print("The match from this algo is = :: ",k)
+##                        side.showside("corner side",side.x_axis_PointsApprox,testing=True)
+##                        matchSide.showside("match side",matchSide.x_axis_PointsApprox)
+##                        matchingtesting.showImage("corner")
+##                        borderPiece.showImage("border")
+##                        cv2.waitKey(0)
+##                    else:
+##                        side.showside("corner side",side.x_axis_PointsApprox)
+##                        matchSide.showside("match side",matchSide.x_axis_PointsApprox)
+##                        matchingtesting.showImage("corner")
+##                        borderPiece.showImage("border")
+##                        cv2.waitKey(0)
+##matchSide = borderPiece.side[0]
+##matchSide = borderPiece.side[1]
+##matchSide = borderPiece.side[3]
+
+##first corner matches the second border (position is i = 0 side is 2 and j = 2 side is 0)
+#First = cornerPieces[2]
+#matchLookingFor = 0
+#First.showImage("corner pieces")
+
+
+
+##object.subsampling(First.side[1],"1 Stuff ")
+##object.showsubsample(First.side[2],First.side[2],"subsample")
+##First.side[2].showside("approx corner side",First.side[2].x_axis_Points)
+#############################################################################
+
+
+#First.side[matchLookingFor].split()
+#First.side[matchLookingFor].setsubsampling(First.side[matchLookingFor])
+##First.side[0].printsubsample(First.side[2])
+##cv2.waitKey(0)
+
+
+#border = borderPieces[1]
+#border.showImage("border pieces")
+#border.side[1].split()
+
+##First.side[2].setsubsampling(First.side[2])
+
+##print("BORDER PRINTING")
+#border.side[1].setsubsampling(border.side[3])
+##print("----------------------------------------------")
+##border.side[3].printsubsample(border.side[3])
+#object.canMatch(First.side[matchLookingFor],border.side[1], "Border 3   Piece 1")
+##object.aligned(First.side[matchLookingFor],border.side[1],Testing = True)
+######################################################################
+
+##border.side[0].showside("Border 6 piece 0",border.side[0].x_axis_Points)
+
+##First.side[2].showTwosplit(First.side[2],border.side[2])
+
+##First.side[0].showside("Border 1 piece 0",First.side[0].x_axis_Points)
+##First.side[1].showside("Border 1 piece 1",First.side[1].x_axis_Points)
+##First.side[2].showside("Border 1 piece 2",First.side[2].x_axis_Points)
+##First.side[3].showside("Border 1 piece 3",First.side[3].x_axis_Points)
+##cv2.waitKey(0)
+
+##border.showImage("border pieces")
+##cv2.waitKey(0)
+##object.subsampling(border.side[0],"2 Stuff ")
+##object.doesMatch(First.side[2],border.side[0],True)
+
+
+##border.side[0].showside("approx border side",border.side[0].x_axis_Points)
+##object.subsampling(First.side[2],border.side[3],"Stuff")
+##object.subsampling(First.side[2],border.side[1],"Stuff1")
+##object.subsampling(First.side[2],border.side[2],"Stuff2")
+##object.subsampling(First.side[2],border.side[3],"Stuff3")
+
+##object.isMatchTestingStuff(First.side[2],border.side[0],"Stuff")
+##object.isMatchTestingStuff(First.side[2],border.side[1],"Stuff 1")
+##object.isMatchTestingStuff(First.side[2],border.side[2],"Stuff 2")
+##object.isMatchTestingStuff(First.side[2],border.side[3],"Stuff 3")
+
+    
+##for k in range(0,len(borderPieces)):
+##    Match = borderPieces[k]
+##    First.side[matchLookingFor].showTwoSides(First.side[matchLookingFor],Match.side[0],name="border "+str(k)+"Piece 0")  
+##    First.side[matchLookingFor].showTwoSides(First.side[matchLookingFor],Match.side[1],name="border "+str(k)+"Piece 1")  
+##    First.side[matchLookingFor].showTwoSides(First.side[matchLookingFor],Match.side[2],name="border "+str(k)+"Piece 2")  
+##    First.side[matchLookingFor].showTwoSides(First.side[matchLookingFor],Match.side[3],name="border "+str(k)+"Piece 3") 
+##    if(k == len(borderPieces)-1):
+##        print("-----------------------------------------------------------------------") 
+##    cv2.waitKey(0)
+
+
+
+
+##First.side[0].showside("original corner side",First.side[0].originalPoints)
+###First.side[2].showside("apppro corner side",First.side[2].x_axis_PointsApprox)
+##cv2.waitKey(0);
+##Match.showImage("border piece")
+##Match.side[2].showside("approx border side",Match.side[2].x_axis_Points)
+##Match.side[2].showside("original border side",Match.side[2].originalPoints)
+
+#for k in range(0,len(cornerPieces)):
+#    corner = cornerPieces[k]
+#    corner.side[0].split()
+#    corner.side[1].split()
+#    corner.side[2].split()
+#    corner.side[3].split()
+
+#    corner.side[0].setsubsampling(corner.side[0])
+#    corner.side[1].setsubsampling(corner.side[1])
+#    corner.side[2].setsubsampling(corner.side[2])
+#    corner.side[3].setsubsampling(corner.side[3])
+
+    
+#for k in range(0,len(borderPieces)):
+#    Match = borderPieces[k]
+#    #Match.showImage("Border " + str(k))
+
+#    #Match.side[0].showside("Border " + str(k) + " Pieces 0",Match.side[0].x_axis_Points)
+#    #Match.side[1].showside("Border " + str(k) + " Pieces 1",Match.side[1].x_axis_Points)
+#    #Match.side[2].showside("Border " + str(k) + " Pieces 2",Match.side[2].x_axis_Points)
+#    #Match.side[3].showside("Border " + str(k) + " Pieces 3",Match.side[3].x_axis_Points)
+    
+#    Match.side[0].split()
+#    Match.side[1].split()
+#    Match.side[2].split()
+#    Match.side[3].split()
+
+#    Match.side[0].setsubsampling(Match.side[0])
+#    Match.side[1].setsubsampling(Match.side[1])
+#    Match.side[2].setsubsampling(Match.side[2])
+#    Match.side[3].setsubsampling(Match.side[3])
+
+##    Match.showImage("border piece"+str(k))
+
+##First.side[0].showside("Border " + str(k) + " Pieces 0",First.side[0].x_axis_Points)
+##First.side[1].showside("Border " + str(k) + " Pieces 1",First.side[1].x_axis_Points)
+##First.side[2].showside("Border " + str(k) + " Pieces 2",First.side[2].x_axis_Points)
+##First.side[3].showside("Border " + str(k) + " Pieces 3",First.side[3].x_axis_Points)
+   
+##cv2.waitKey(0)
+#possibleMatches = []
+#for k in range(0,len(borderPieces)):
+#    Match = borderPieces[k]
+##    print("The Border is = ",k)
+##    print("The side is = 0")
+##    if(k==2):
+##        object.showsubsample(First.side[2],Match.side[0],"Testin")
+##        object.doesMatch(First.side[2],Match.side[0],True)
+##    else:
+##        object.doesMatch(First.side[2],Match.side[0])
+##    print("The side is = 1")
+#    name = str("Border Piece  =  ")+str(k)
+#    print(name,"-----------------------------------")
+#    test0  = object.canMatch(First.side[matchLookingFor],Match.side[0], str(name)+"   Piece 0")
+#    if(test0 and object.aligned(First.side[matchLookingFor],Match.side[0], name= str(name)+"   Piece 0")):
+#        possibleMatches.append([Match,0,k])
+#        print("border piece = "+str(k) , " : 0 Maybe ")
+#    test1  = object.canMatch(First.side[matchLookingFor],Match.side[1], str(name)+"   Piece 1")
+#    if(test1 and object.aligned(First.side[matchLookingFor],Match.side[1], name= str(name)+"   Piece 1")):
+#        possibleMatches.append([Match,1,k])
+#        print("border piece = "+str(k) , " : 1 Maybe ")
+#    test2  = object.canMatch(First.side[matchLookingFor],Match.side[2], str(name)+"   Piece 2")
+#    if(test2 and object.aligned(First.side[matchLookingFor],Match.side[2], name= str(name)+"   Piece 2")):
+#        possibleMatches.append([Match,2,k])
+#        print("border piece = "+str(k) , " : 2 Maybe ")
+#    test3  = object.canMatch(First.side[matchLookingFor],Match.side[3], str(name)+"   Piece 3")
+#    if(test3 and object.aligned(First.side[matchLookingFor],Match.side[3], name= str(name)+"   Piece 3")):
+#        possibleMatches.append([Match,3,k])
+#        print("border piece = "+str(k) , " : 3 Maybe ")
+#    if(k==9):
+#        print("========================================================")
+#        Match.side[3].printsubsample(Match.side[3])
+#        #object.aligned(First.side[matchLookingFor],Match.side[3], name= str(name)+"   Piece 3",Testing=True)
+#        print("Dv help me")
+#        #Match.showImage("border piece"+str(k))
+#        #print("Test 0 = ",test0 , "Test 1 = " ,test1, "Test 2 = " ,test2, "Test 3 = " ,test3)
+#        #Match.side[0].showside("Border  Pieces 0",Match.side[0].x_axis_Points)
+#        #Match.side[1].showside("Border  Pieces 1",Match.side[1].x_axis_Points)
+#        #Match.side[2].showside("Border  Pieces 2",Match.side[2].x_axis_Points)
+#        #Match.side[3].showside("Border  Pieces 3",Match.side[3].x_axis_Points)
+#        #cv2.waitKey(0);
+#newPossiblMatch = []
+#for i in range(0,len(possibleMatches)):
+#    possibleMatches[i][0].showImage("border piece"+str(possibleMatches[i][2]))
+#    print("border piece = ",possibleMatches[i][2]," : ",possibleMatches[i][1])
+#    #if(i == 1):
+#    #    object.aligned(First.side[1],possibleMatches[i][0].side[possibleMatches[i][1]],Testing = True)
+#    #    First.side[1].showTwosplit(First.side[1],possibleMatches[i][0].side[possibleMatches[i][1]])
+#    #    First.side[1].showTwoSides(First.side[1],possibleMatches[i][0].side[possibleMatches[i][1]])
+#    flag = object.aligned(First.side[matchLookingFor],possibleMatches[i][0].side[possibleMatches[i][1]])
+#    #if(flag):
+#    #    newPossiblMatch.append
+#    object.Match(First.side[matchLookingFor],[possibleMatches[i][0].side[possibleMatches[i][1]]])
+#    print("-------------------------------------------------------")
+#    #print("Test 0 = ",test0 , "Test 1 = " ,test1, "Test 2 = " ,test2, "Test 3 = " ,test3)
+#    #possibleMatches[i].side[possibleMatches[1]].showside("Border  Pieces 0",Match.side[0].x_axis_Points)
+     
+##First.side[matchLookingFor].showTwoSides(First.side[matchLookingFor],borderPieces[8].side[0],name="dc 2 0")  
+
+##First.side[2].showside("Original Border",First.side[2].originalPoints)
+##borderPieces[2].side[0].showside("Original Border",borderPieces[2].side[0].originalPoints)
+
+##First.side[2].showTwoSides(First.side[0],borderPieces[1].side[1],name="Border 2 1") 
+#First.side[0].testingthexaiss("PLS dvworkr",borderPieces[1].side[1])
+
+##borderPieces[1].side[1].showside("DvHelp Me  rtrt",borderPieces[1].side[1].originalPoints)
+
+##First.side[matchLookingFor].showside("DvHelp Me2",First.side[matchLookingFor].originalPoints)
+##First.side[matchLookingFor].testingthexaiss("come on 2")
+##First.side[matchLookingFor].showside("DvHelp Me rtrtr5",First.side[matchLookingFor].x_axis_Points) 
+##First.side[2].showTwoSides(First.side[matchLookingFor],borderPieces[3].side[3],name="Border 3 3")  
+##First.side[2].showTwoSides(First.side[2],borderPieces[8].side[3],name="Border 8 7")  
+#cv2.waitKey(0);
+
+
+##object.aligned(First.side[2],border.side[0])
+##object.Match(First.side[2],[border.side[0]])
+##    print("The side is = 2")
+##    object.doesMatch(First.side[2],Match.side[2])
+##    print("The side is = 3")
+##    object.doesMatch(First.side[2],Match.side[3])
+##    print("-------------------------------------------------------------------------------------------")
+
+##Match.side[0].showside("original border side",Match.side[0].originalPoints)
+##Match.side[0].showside("apppro border side",Match.side[0].x_axis_PointsApprox)
+##print("Answer  =  ",object.isMatch(First.side[0],Match.side[2]))
+##cv2.imshow("Thks dv for working",img)
 cv2.waitKey(0);
 

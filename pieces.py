@@ -26,7 +26,7 @@ class pieces:
         self.pointB = []
         self.pointC = []
         self.pointD = []
-
+        self.name = ""
 
     # returns the linear equation for given two points
     def LinerEquation(self,point1,point2):
@@ -254,7 +254,7 @@ class pieces:
 
 
 
-    def findingcorners(self):
+    def findingcorners(self,test=False):
 #getting the pieces of jigsaw
             tmpim=self.image
 #denosing the image of each piece (Actually one piece)
@@ -358,7 +358,7 @@ class pieces:
                         startPoint=startPoint+1
                 if((UppperR and UppperL and LowwerR and LowwerL)==False):
                     Possible_Corners.append([isPointCorner[0][0],isPointCorner[0][1]])
-          
+           
             allCorners = []
             testing=False
             #print(Possible_Corners)
@@ -500,10 +500,10 @@ class pieces:
                                                                                         , (cornerTwo[0], cornerTwo[1]), (cornerThree[0], cornerThree[1]), (cornerFour[0], cornerFour[1])])
                                                                 result = p.contains_points([(centerX, centerY)])
                                                                 if(result[0]):
-                                                                    cv2.circle(tmpim,(cornerOne[0],cornerOne[1]), 3, (0,0,0), 1)
-                                                                    cv2.circle(tmpim,(cornerTwo[0],cornerTwo[1]), 3, (0,0,0), 1)
-                                                                    cv2.circle(tmpim,(cornerThree[0],cornerThree[1]), 3, (0,0,0), 1)
-                                                                    cv2.circle(tmpim,(cornerFour[0],cornerFour[1]), 3, (0,0,0), 1)
+                                                                    #cv2.circle(tmpim,(cornerOne[0],cornerOne[1]), 3, (0,0,0), 1)
+                                                                    #cv2.circle(tmpim,(cornerTwo[0],cornerTwo[1]), 3, (0,0,0), 1)
+                                                                    #cv2.circle(tmpim,(cornerThree[0],cornerThree[1]), 3, (0,0,0), 1)
+                                                                    #cv2.circle(tmpim,(cornerFour[0],cornerFour[1]), 3, (0,0,0), 1)
                                                                     self.corners.append(cornerOne)
                                                                     self.corners.append(cornerTwo)
                                                                     self.corners.append(cornerThree)
@@ -527,9 +527,20 @@ class pieces:
             #cv2.imshow("Thks dsadvakcndlkadlc",newImageAppro)
             #cv2.imshow("Thks dv",tmpim)
             #cv2.waitKey(0);
+            
+
+            
             self.center.append(centerX)
             self.center.append(centerY)
-            self.setPropertyOfCorner(approx,contoursPi)
+#giving contour here 
+           
+            self.setPropertyOfCorner(approx,contoursPi,test)
+
+
+
+
+
+        
 
     #
     #   approx -- all the approx rectanguler points
@@ -539,7 +550,7 @@ class pieces:
     #   startPoint -- one corner in this side on allpoints array
     #   endPoint -- second corner in this side on allpoints array
     #   allpoints -- contains all the points on the side of this piece
-    def getSide(self, approx, contours, pointA, pointB, startPoint, endPoint,allPoints):
+    def getSide(self, approx, contours, pointA, pointB, startPoint, endPoint,allPoints,test=False):
         side=sideOfPieces(pointA,pointB)
         pointBetweenAB =  self.NumberOfPointInBetween(pointA,pointB,approx)[2]
         indexI = self.indexOf(pointA,approx)
@@ -548,6 +559,7 @@ class pieces:
         if(pointBetweenAB==0):
             points.append(pointA)
             points.append(pointB)
+            side.isStraight = True
         if(pointBetweenAB!=0):
             self.setPointOfSides(allPoints,startPoint,endPoint,points)
             nextPoint = indexI+1
@@ -572,14 +584,14 @@ class pieces:
             isY = True
             if((-135<=angle and angle<=-45) or (45<=angle and angle<=135)):
                 isY = False
-                print("XXX")   
-            else:
-                print("YYY")   
+            #    print("XXX")   
+            #else:
+            #    print("YYY")   
             above = False   
             x=0    
             if(y<nextPointCheck[0][1] and isY):
                 above = False  
-                print("above ",above)  
+                #print("above ",above)  
             else:
                 if(not isY):
                     x=0
@@ -589,24 +601,24 @@ class pieces:
                         x = (nextPointCheck[0][1]-Eq[0][1])/Eq[0][0] 
                     if(x>nextPointCheck[0][0]):
                         above = True  
-                        print("above ",above)    
+                        #print("above ",above)    
                     else:
                         above = False
-                        print("above ",above)  
+                        #print("above ",above)  
                 else:
                     above = True
-                    print("above ",above)  
+                    #print("above ",above)  
             if(isY):
                 y = Eq[0][0] * self.center[0]+ Eq[0][1]
                 if(y<self.center[1] and  not above):
                     side.isConvex=True
-                    print("inside false ",above)  
+                    #print("inside false ",above)  
                 elif(y>self.center[1] and above):
                     side.isConvex=True
-                    print("inside true ",above)  
+                    #print("inside true ",above)  
                 else:
                     side.isConcave=True
-                    print("outside ",above)  
+                    #print("outside ",above)  
             else:
                 x=0
                 if(Eq[0][0]==0):
@@ -616,18 +628,46 @@ class pieces:
 
                 if(x<self.center[0] and  not above):
                     side.isConvex=True
-                    print("inside false ",above)  
+                    #print("inside false ",above)  
                 elif(x>self.center[0] and above):
                     side.isConvex=True
-                    print("inside true ",above)  
+                    #print("inside true ",above)  
                 else:
                     side.isConcave=True
-                    print("outside ",above)  
+                    #print("outside ",above)  
                 
         side.originalPoints = points
+        #if(test):
+            
+        #    newImageAppro1 = np.zeros((500,500,3), np.uint8)
+        #    for i in range(0,len(points)):
+        #        point1 = points[i]
+        #        cv2.circle(newImageAppro1,(int(point1[0]),int(point1[1])), 3, (255,255,255), 1)
+        #        cv2.imshow("Lets goos", newImageAppro1)
+        #        print("side.isConcave",side.isConcave)
+        #        print("side.isConvex",side.isConvex)
+        #        print("side.isStraight",side.isStraight)
+        #        cv2.waitKey(0)
+            
         return side
+    def getPointsForApprox(self, approx, startPoint, endPoint):
+        points = []
+        cordinate = approx[startPoint]
+        points.append([cordinate[0][0],cordinate[0][1]])
+        while(startPoint != endPoint):
+            ipoint = startPoint + 1
+            if(ipoint != endPoint and not ipoint>=len(approx)):
+                cordinate = approx[ipoint]
+                points.append([cordinate[0][0],cordinate[0][1]])
+            if(ipoint>=len(approx)):
+                startPoint = 0
+            else:
+                startPoint = ipoint
+        cordinate = approx[endPoint]
+        points.append([cordinate[0][0],cordinate[0][1]])
+        return points 
         
-    def setPropertyOfCorner(self ,approx, contours):
+    def setPropertyOfCorner(self ,approx, contours,test=False):
         cornerA = self.corners[0]
         cornerB = self.corners[1]
         cornerC = self.corners[2]
@@ -636,7 +676,18 @@ class pieces:
         pointBetweenBC =  self.NumberOfPointInBetween(cornerB,cornerC,approx)[2]
         pointBetweenCD =  self.NumberOfPointInBetween(cornerC,cornerD,approx)[2]
         pointBetweenDA =  self.NumberOfPointInBetween(cornerD,cornerA,approx)[2]
+        #getting the position of the corner in approx
+        pointi = self.indexOf(cornerA,approx)
+        pointj = self.indexOf(cornerB,approx)
+        pointk = self.indexOf(cornerC,approx)
+        pointl = self.indexOf(cornerD,approx)
+        #all the points betweent the corners in approx
+        approxPointA = self.getPointsForApprox(approx,pointi,pointj)
+        approxPointB = self.getPointsForApprox(approx,pointj,pointk)
+        approxPointC = self.getPointsForApprox(approx,pointk,pointl)
+        approxPointD = self.getPointsForApprox(approx,pointl,pointi)
         
+        #decideing if the pieces is a corner, border or an center piece
         if(pointBetweenAB != 0 and pointBetweenBC != 0 and pointBetweenCD != 0 and pointBetweenDA != 0):
             self.isCenterPiece = True
         elif((pointBetweenAB == 0 and pointBetweenBC != 0 and pointBetweenCD != 0 and pointBetweenDA != 0)
@@ -646,11 +697,10 @@ class pieces:
             self.isBorderPiece = True
         else:
             self.isCornerPiece = True
-#i believe i don't need this
         #if(pointBetweenAB==0):
         #    print(approx)   
         #    print("come on")
-        #here we ar trying to find the best match for the corner in the contours
+        #here we are trying to find the best match for the corner in the contours
         #-1 indecates if the match is not found
         
         pointA=-1
@@ -673,10 +723,25 @@ class pieces:
                 pointC = i
             if(x == cornerD[0] and y == cornerD[1]):
                 pointD = i
-        self.side.append(self.getSide(approx,constants,cornerA,cornerB,pointA,pointB,allPoints))
-        self.side.append(self.getSide(approx,constants,cornerB,cornerC,pointB,pointC,allPoints))
-        self.side.append(self.getSide(approx,constants,cornerC,cornerD,pointC,pointD,allPoints))
-        self.side.append(self.getSide(approx,constants,cornerD,cornerA,pointD,pointA,allPoints))
+        #decides if the side is a straight , convex or concave 
+        #also store the original point of the graph in the side object
+        self.side.append(self.getSide(approx,contours,cornerA,cornerB,pointA,pointB,allPoints))
+        self.side.append(self.getSide(approx,contours,cornerB,cornerC,pointB,pointC,allPoints,test))
+        self.side.append(self.getSide(approx,contours,cornerC,cornerD,pointC,pointD,allPoints))
+        self.side.append(self.getSide(approx,contours,cornerD,cornerA,pointD,pointA,allPoints))
+        #store the approximate point of the graph in the side
+        self.side[0].approxPoints = approxPointA
+        self.side[1].approxPoints = approxPointB
+        self.side[2].approxPoints = approxPointC
+        self.side[3].approxPoints = approxPointD
+        #if(test):
+            
+        #    newImageAppro1 = np.zeros((500,500,3), np.uint8)
+        #    for i in range(0,len(approxPointB)):
+        #        point1 = approxPointB[i]
+        #        cv2.circle(newImageAppro1,(int(point1[0]),int(point1[1])), 3, (255,255,255), 1)
+        #        cv2.imshow("Lets goos", newImageAppro1)
+        #        cv2.waitKey(0)
         #print(self.pointA)
         #print("------------------------------------------------------- ")
         #print(self.pointB)
@@ -687,7 +752,87 @@ class pieces:
         #print("------------------------------------------------------- ")
         #print(self.pointD)
         #print("------------------------------------------------------- ")
+        #coverting the original point on the x-aixsi
         self.showGraphs()
+    '''
+        sets the defination of the side 
+        meaning that if the side is on the top 
+        it is named TOP if it is at the bottom it is named BOTTOM
+        so thi funcition set direction of a side same thing with right and left
+    '''
+    def setdirection(self):
+        axis = self.side[0].whichaxis
+        if(axis=="X"):
+            y1 = self.side[0].cornerRight[1]
+            y2 = self.side[2].cornerRight[1]
+            if(y1<y2):
+                self.side[0].direction = "TOP"
+                self.side[2].direction = "BOTTOM"
+            else:
+                self.side[0].direction = "BOTTOM"
+                self.side[2].direction = "TOP"
+
+            x1 = self.side[1].cornerRight[0]
+            x2 = self.side[3].cornerRight[0]
+            if(x1<x2):
+                self.side[1].direction = "LEFT"
+                self.side[3].direction = "RIGHT"
+            
+            else:
+                self.side[1].direction = "RIGHT"
+                self.side[3].direction = "LEFT"
+        else:
+            x1 = self.side[0].cornerRight[0]
+            x2 = self.side[2].cornerRight[0]
+            if(x1<x2):
+                self.side[0].direction = "LEFT"
+                self.side[2].direction = "RIGHT"
+            
+            else:
+                self.side[0].direction = "RIGHT"
+                self.side[2].direction = "LEFT"
+
+            y1 = self.side[1].cornerRight[1]
+            y2 = self.side[3].cornerRight[1]
+            if(y1<y2):
+                self.side[1].direction = "TOP"
+                self.side[3].direction = "BOTTOM"
+            
+            else:
+                self.side[1].direction = "BOTTOM"
+                self.side[3].direction = "TOP"
+        sidea = self.side[0]
+        sideb = self.side[1]
+        sidec = self.side[2]
+        sided = self.side[3]
+
+        if(((sidea.isStraight and sidea.direction=="TOP") or (sidec.isStraight and sidec.direction=="TOP") 
+                or (sideb.isStraight and sideb.direction=="TOP") or (sided.isStraight and sided.direction=="TOP"))
+    
+                and ((sidea.isStraight and sidea.direction=="LEFT") or (sidec.isStraight and sidec.direction=="LEFT") 
+                or (sideb.isStraight and sideb.direction=="LEFT") or (sided.isStraight and sided.direction=="LEFT"))):
+            self.name = "TL"
+        elif(((sidea.isStraight and sidea.direction=="TOP") or (sidec.isStraight and sidec.direction=="TOP") 
+                or (sideb.isStraight and sideb.direction=="TOP") or (sided.isStraight and sided.direction=="TOP"))
+    
+                and ((sidea.isStraight and sidea.direction=="RIGHT") or (sidec.isStraight and sidec.direction=="RIGHT") 
+                or (sideb.isStraight and sideb.direction=="RIGHT") or (sided.isStraight and sided.direction=="RIGHT"))):
+            self.name = "TR"
+        elif(((sidea.isStraight and sidea.direction=="BOTTOM") or (sidec.isStraight and sidec.direction=="BOTTOM") 
+                or (sideb.isStraight and sideb.direction=="BOTTOM") or (sided.isStraight and sided.direction=="BOTTOM"))
+
+                and ((sidea.isStraight and sidea.direction=="LEFT") or (sidec.isStraight and sidec.direction=="LEFT") 
+                or (sideb.isStraight and sideb.direction=="LEFT") or (sided.isStraight and sided.direction=="LEFT"))):
+            self.name = "BL"
+        elif(((sidea.isStraight and sidea.direction=="BOTTOM") or (sidec.isStraight and sidec.direction=="BOTTOM") 
+                or (sideb.isStraight and sideb.direction=="BOTTOM") or (sided.isStraight and sided.direction=="BOTTOM"))
+    
+                and ((sidea.isStraight and sidea.direction=="RIGHT") or (sidec.isStraight and sidec.direction=="RIGHT") 
+                or (sideb.isStraight and sideb.direction=="RIGHT") or (sided.isStraight and sided.direction=="RIGHT"))):
+            self.name = "BR"
+        else:
+            self.name = "N"
+            
     def setPointOfSides(self,approx,start,end,points):
         while(start != end):
             points.append(approx[start][0])
@@ -696,34 +841,111 @@ class pieces:
                 start=0
         points.append(approx[start][0])
 
-
-    def showImage(self):
-            cv2.imshow("Thks dv",self.image)
-            cv2.waitKey(0);
-    def showXaxisGraph(self,points,testing = False ):
-        newImageAppro1 = np.zeros((500,500,3), np.uint8)
+    def showXaxisGraph(self,points,opsiteSides = False , testing=False ):
         originAngle = self.getAngle(points[0],points[len(points)-1])
-        newPoints = [[10,40]]
+        newFirstX = 10
+        newFirstY = 60
+        newPoints = [[newFirstX,newFirstY]]
+        #if(opsiteSides):
+        #    startI = len(points)-2
+        #    while(startI>=0):
+        #        point1 = points[len(points)-1]
+        #        point2 = points[startI]
+        #        angle = self.getAngle(point2,point1)
+        #        diffAngle = originAngle - angle
+        #        distance = self.getDistance(point2,point1)
+        #        newX = newFirstX + (distance * math.cos(math.radians(diffAngle)))
+        #        newY = newFirstY + (distance * math.sin(math.radians(diffAngle)))
+        #        newPoints.append([newX,newY])
+        #        startI = startI-1
+        #    return newPoints
+            
         for i in range(1,len(points)):
             point1 = points[0]
             point2 = points[i]
             angle = self.getAngle(point1,point2)
-            diffAngle = originAngle - angle
+            diffAngle=0
+            if(opsiteSides):
+                diffAngle = angle-originAngle 
+            else:
+                diffAngle = originAngle-angle 
             distance = self.getDistance(point1,point2)
-            newX = 10 + (distance * math.cos(math.radians(diffAngle)))
-            newY = 40 + (distance * math.sin(math.radians(diffAngle)))
+            newX = newFirstX + (distance * math.cos(math.radians(diffAngle)))
+            newY = newFirstY + (distance * math.sin(math.radians(diffAngle)))
             newPoints.append([newX,newY])
-            
+            if(testing):
+                newImageAppro1 = np.zeros((500,500,3), np.uint8)
+                ts = False
+                for j in range(0,len(newPoints)-1):
+                    nex1 = newPoints[j]
+                    nex2 = newPoints[j+1]
+                    cv2.line(newImageAppro1,(int(nex1[0]),int(nex1[1])),(int(nex2[0]),int(nex2[1])), (255,255,255), 1)
+                   
+                #if(ts):
+                    
+                print("originAngle  ::  ",originAngle)
+                print("angle  ::  ",angle)
+                print("diffAngle  ::  ",diffAngle)
+                print("distance  ::  ",distance)
+                print("new the distance is  ::  ",self.getDistance([newFirstX,newFirstY],[newX,newY]))
+                print("j =   ::  ",j)
+                print("j+1 =   ::  ",j+1)
+                if(i==26 or i==27):
+                    print("Angle In Real : = ",math.atan2(point2[1] - point1[1], point2[0] - point1[0]) * 180.0 / math.pi)
+                    print("real points : = ",newX," ; ",newY)
+                    print("shown points : = ",int(newX)," ; ",int(newY))
+                ts = True
+                print("------------------------------------------------------------------------------------------  ::  ")
+
+                newImageAppro2 = np.zeros((500,500,3), np.uint8)
+                cv2.imshow("testing stuff",newImageAppro1) 
+                for j in range(0,len(newPoints)-1):
+                        point1 = points[j]
+                        point2 = points[j+1]
+                        cv2.line(newImageAppro2,(int(point1[0]),int(point1[1])),(int(point2[0]),int(point2[1])), (255,255,255), 1)
+                cv2.imshow("real stuff",newImageAppro2) 
+                cv2.waitKey(0)
             #X = Cx + (r * cosine(angle))  
             #Y = Cy + (r * sine(angle))
             #/_(x2-x1^2)+(y2-y1^2)
-        print("--------------------")
-        print(newPoints)
-        for i in range(0,len(newPoints)-1):
-            point1 = newPoints[i]
-            point2 = newPoints[i+1]
-            cv2.line(newImageAppro1,(int(point1[0]),int(point1[1])),(int(point2[0]),int(point2[1])), (255,255,255), 1)
-        cv2.imshow("testing 1",newImageAppro1)
+        
+        return newPoints
+
+    def makeX_axisGraphs(self,side):
+        newPoints = self.showXaxisGraph(side.approxPoints)
+        start = newPoints[1] # 1 since we need the next point and not the first one
+        end = newPoints[len(newPoints)-2] # same we don't need the 
+        if(2>=len(newPoints)):
+            return []
+        nextCheck = newPoints[2]
+        Eq = self.LinerEquation([ start[0] , start[1] ] , [ end[0] , end[1] ])
+        y = Eq[0][0] * nextCheck[0]+ Eq[0][1]
+        '''
+        *we will be looking only in y since all is in x-axis
+        '''
+        above = False   
+        x=0    
+        if(y<nextCheck[1]):
+            above = False  #this below the line
+        else:
+            above = True   #this is above the line
+        #concave is outside
+        #convex is inside
+        if(above):
+            newPoints = self.showXaxisGraph(side.originalPoints,testing=False)
+            side.x_axis_Points = newPoints
+            newPoints = self.showXaxisGraph(side.approxPoints)
+            side.x_axis_PointsApprox = newPoints
+        else:
+            newPoints = self.showXaxisGraph(side.originalPoints,opsiteSides=True,testing=False)
+            side.x_axis_Points = newPoints
+            newPoints = self.showXaxisGraph(side.approxPoints,opsiteSides=True)
+            side.x_axis_PointsApprox = newPoints
+
+
+
+
+
     def getDistance(self,pointA,pointB):
         return ((pointB[0]-pointA[0]) ** 2 + (pointB[1]-pointA[1]) ** 2 ) ** 0.5
     #
@@ -745,65 +967,164 @@ class pieces:
         #print("angle (old , new ) = ( ",angle," ; ", newAngle)
         return newAngle
     def showGraphs(self):
-        newImageAppro1 = np.zeros((500,500,3), np.uint8)
-        for i in range(0,len(self.side[0].originalPoints)-1):
-            point1 = self.side[0].originalPoints[i]
-            point2 = self.side[0].originalPoints[i+1]
-            print("------------------------------------------------------- ")
-            print(point1)
-            print(point2)
-            print("------------------------------------------------------- ")
+        #print("------------------------------------------------------- ")
+        #newImageAppro1 = np.zeros((500,500,3), np.uint8)
+        #for i in range(0,len(self.side[0].originalPoints)-1):
+        #    point1 = self.side[0].originalPoints[i]
+        #    point2 = self.side[0].originalPoints[i+1]
+        #    print("------------------------------------------------------- ")
+        #    print(point1)
+        #    print(point2)
+        #    print("------------------------------------------------------- ")
             
-            cv2.line(newImageAppro1,(point1[0],point1[1]),(point2[0],point2[1]), (255,255,255), 1)
-        print("------------------------------------------------------- ")
-        cv2.imshow("graph 1",newImageAppro1)
-        self.showXaxisGraph(self.side[0].originalPoints)
-        print("--------------------------------------")
-        print("above  ",self.side[0].isConcave)
-        print("below  ",self.side[0].isConvex)
-        print("stragit  ",self.side[0].isStraight)
-        print("1111111111111111111 ")
-        cv2.waitKey(0);
-        newImageAppro2 = np.zeros((500,500,3), np.uint8)
-        for i in range(0,len(self.side[1].originalPoints)-1):
-            point1 = self.side[1].originalPoints[i]
-            point2 = self.side[1].originalPoints[i+1]
-            cv2.line(newImageAppro2,(point1[0],point1[1]),(point2[0],point2[1]), (255,255,255), 1)
-        print("------------------------------------------------------- ")
-        cv2.imshow("graph 2",newImageAppro2) 
-        self.showXaxisGraph(self.side[1].originalPoints)
-        print("--------------------------------------")
-        print("above  ",self.side[1].isConcave)
-        print("below  ",self.side[1].isConvex)
-        print("stragit  ",self.side[1].isStraight)
-        print("2222222222222222222222 ")
-        cv2.waitKey(0);
+        #    cv2.line(newImageAppro1,(point1[0],point1[1]),(point2[0],point2[1]), (255,255,255), 1)
+        #print("------------------------------------------------------- ")
+        #cv2.imshow("graph 1",newImageAppro1)
+        #print("---------------------------------")
+
+        #print("this is ir  0 ",self.side[0].contourpoints)
+        #print("---------------------------------")
+        #print("---------------------------------")
+        self.makeX_axisGraphs(self.side[0])
+        #self.side[0].showside("side 0",self.side[0].x_axis_Points)
+        #print("--------------------------------------")
+        #print("above  ",self.side[0].isConcave)
+        #print("below  ",self.side[0].isConvex)
+        #print("stragit  ",self.side[0].isStraight)
+        #print("1111111111111111111 ")
+        #cv2.waitKey(0);
+        #newImageAppro2 = np.zeros((500,500,3), np.uint8)
+        #for i in range(0,len(self.side[1].originalPoints)-1):
+        #    point1 = self.side[1].originalPoints[i]
+        #    point2 = self.side[1].originalPoints[i+1]
+        #    cv2.line(newImageAppro2,(point1[0],point1[1]),(point2[0],point2[1]), (255,255,255), 1)
+        #print("------------------------------------------------------- ")
+        #cv2.imshow("graph 2",newImageAppro2) 
+        self.makeX_axisGraphs(self.side[1])
+        #self.side[1].showside("side 1",self.side[1].x_axis_Points)
+        #cv2.waitKey(0);
+        #print("--------------------------------------")
+        #print("above  ",self.side[1].isConcave)
+        #print("below  ",self.side[1].isConvex)
+        #print("stragit  ",self.side[1].isStraight)
+        #print("2222222222222222222222 ")
+        #cv2.waitKey(0);
  
-        newImageAppro3 = np.zeros((500,500,3), np.uint8) 
-        for i in range(0,len(self.side[2].originalPoints)-1):
-            point1 = self.side[2].originalPoints[i]
-            point2 = self.side[2].originalPoints[i+1]
-            cv2.line(newImageAppro3,(point1[0],point1[1]),(point2[0],point2[1]), (255,255,255), 1)
-        print("------------------------------------------------------- ")
-        cv2.imshow("graph 3",newImageAppro3) 
-        self.showXaxisGraph(self.side[2].originalPoints)
-        print("--------------------------------------")
-        print("above  ",self.side[2].isConcave)
-        print("below  ",self.side[2].isConvex)
-        print("stragit  ",self.side[2].isStraight)
-        print("33333333333333333333333  ")
-        cv2.waitKey(0);
-        newImageAppro4 = np.zeros((500,500,3), np.uint8)  
-        for i in range(0,len(self.side[3].originalPoints)-1):
-            point1 = self.side[3].originalPoints[i]
-            point2 = self.side[3].originalPoints[i+1]
-            cv2.line(newImageAppro4,(point1[0],point1[1]),(point2[0],point2[1]), (255,255,255), 1)
-        print("------------------------------------------------------- ")
-        cv2.imshow("graph 4",newImageAppro4)
-        self.showXaxisGraph(self.side[3].originalPoints)
-        print("--------------------------------------")
-        print("above  ",self.side[3].isConcave)
-        print("below  ",self.side[3].isConvex)
-        print("stragit  ",self.side[3].isStraight)
-        print("44444444444444444444444 ")
-        cv2.waitKey(0);
+        #newImageAppro3 = np.zeros((500,500,3), np.uint8) 
+        #for i in range(0,len(self.side[2].originalPoints)-1):
+        #    point1 = self.side[2].originalPoints[i]
+        #    point2 = self.side[2].originalPoints[i+1]
+        #    cv2.line(newImageAppro3,(point1[0],point1[1]),(point2[0],point2[1]), (255,255,255), 1)
+        #print("------------------------------------------------------- ")
+        #cv2.imshow("graph 3",newImageAppro3) 
+        self.makeX_axisGraphs(self.side[2])
+        #self.side[2].showside("side 2",self.side[2].x_axis_Points)
+        #print("--------------------------------------")
+        #print("above  ",self.side[2].isConcave)
+        #print("below  ",self.side[2].isConvex)
+        #print("stragit  ",self.side[2].isStraight)
+        #print("33333333333333333333333  ")
+        #cv2.waitKey(0);
+        #newImageAppro4 = np.zeros((500,500,3), np.uint8)  
+        #for i in range(0,len(self.side[3].originalPoints)-1):
+        #    point1 = self.side[3].originalPoints[i]
+        #    point2 = self.side[3].originalPoints[i+1]
+        #    cv2.line(newImageAppro4,(point1[0],point1[1]),(point2[0],point2[1]), (255,255,255), 1)
+        #print("------------------------------------------------------- ")
+        #cv2.imshow("graph 4",newImageAppro4)
+        self.makeX_axisGraphs(self.side[3])
+        #self.side[3].showside("side 3",self.side[3].x_axis_Points)
+        #print("--------------------------------------")
+        #print("above  ",self.side[3].isConcave)
+        #print("below  ",self.side[3].isConvex)
+        #print("stragit  ",self.side[3].isStraight)
+        #print("44444444444444444444444 ")
+        #cv2.waitKey(0);
+
+    def showImage(self,name):
+            #for i in range(0,len(self.side)):
+            #    strj = "Original Pice" +str(i)
+            #    self.side[i].showside(strj,self.side[i].originalPoints) 
+            #    strj = "approx Pice" +str(i)
+            #    self.side[i].showside(strj,self.side[i].x_axis_Points) 
+              #  print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"    ,  i)  
+    
+#getting the pieces of jigsaw
+            tmpim=self.image
+#denosing the image of each piece (Actually one piece)
+        #    dst = cv2.fastNlMeansDenoisingColored(tmpim,None,10,20,7,5)
+        #    #print("hello")
+        ##convertinf it into grayscale image
+        #    gryPiec = cv2.cvtColor(dst,cv2.COLOR_RGB2GRAY)
+        ##making the threshold of the grayscaled image
+        #    ret, threshPie = cv2.threshold(gryPiec, 230, 255, cv2.THRESH_BINARY_INV)
+        ##dectecting the contours of the pieces    
+        #    cv2.imshow("Threshold "+str(name),threshPie)
+        #    median = cv2.medianBlur(tmpim,5)
+        #    gryPiec = cv2.cvtColor(median,cv2.COLOR_RGB2GRAY)
+        ##making the threshold of the grayscaled image
+        #    ret, threshPie = cv2.threshold(gryPiec, 230, 255, cv2.THRESH_BINARY_INV)
+        #    cv2.imshow("Threshold Median "+str(name),threshPie)
+        #    newBlur = cv2.blur(tmpim,(5,5))
+        #    gryPiec = cv2.cvtColor(newBlur,cv2.COLOR_RGB2GRAY)
+        ##making the threshold of the grayscaled image
+        #    ret, threshPie = cv2.threshold(gryPiec, 230, 255, cv2.THRESH_BINARY_INV)
+        #    cv2.imshow("new Median "+str(name),threshPie)
+
+            cv2.imshow(name,tmpim)
+
+    #testing contour and approx gives the samepoints
+    def showApproxAndContour(self):
+            print("i came")
+#getting the pieces of jigsaw
+            tmpim=self.image
+#denosing the image of each piece (Actually one piece)
+            dst = cv2.fastNlMeansDenoisingColored(tmpim,None,10,20,7,5)
+            #print("hello")
+        #convertinf it into grayscale image
+            gryPiec = cv2.cvtColor(dst,cv2.COLOR_RGB2GRAY)
+        #making the threshold of the grayscaled image
+            ret, threshPie = cv2.threshold(gryPiec, 230, 255, cv2.THRESH_BINARY_INV)
+        #dectecting the contours of the pieces    
+            im2Pi, contoursPi, hierarchyPi = cv2.findContours(threshPie, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
+        #making the contours of same colour and the background of same colour
+            newImageAppro = np.zeros((500,500,3), np.uint8)  
+            Directions=[]
+            var=contoursPi[0]
+            epsilon = 0.00000000000000000001*cv2.arcLength(var,True)
+            approx = cv2.approxPolyDP(var,epsilon,True)
+        #### don't need to be done now
+            for varCo in range(0,len(approx)-1):
+                    varCordP=approx[0]
+                    if(varCo==0):
+                        varCordP=approx[len(approx)-1]
+                    else:
+                        varCordP=approx[varCo-1]
+                    varCord = approx[varCo]
+                    varCord2 = approx[varCo+1]
+                    cv2.line(newImageAppro,(varCord[0][0],varCord[0][1]),(varCord2[0][0],varCord2[0][1]), (255,255,255), 1)
+        # the above part as well since it is for visuals 
+            
+            cv2.line(newImageAppro,(approx[0][0][0],approx[0][0][1]),(approx[len(approx)-1][0][0],approx[len(approx)-1][0][1]), (255,255,255))
+            contourImage = np.zeros((500,500,3), np.uint8)  
+            print(contoursPi[0][0])
+            for varCo in range(0,len(contoursPi[0])-1):
+                    
+                    varCord=contoursPi[0][varCo]
+                    varCord2=contoursPi[0][varCo+1]
+                    cv2.line(contourImage,(varCord[0][0],varCord[0][1]),(varCord2[0][0],varCord2[0][1]), (255,255,255), 1)
+            compare = True
+            for varCo in range(0,len(contoursPi[0])):
+                    
+                    varCord=contoursPi[0][varCo]
+                    varCordCompa = approx[varCo]
+                    if(varCord[0][0] != varCordCompa[0][0] or varCordCompa[0][1]!=varCord[0][1]):
+                        compare=False
+            if(compare):
+                print("True")
+            else:
+                print("False")
+            cv2.imshow("approx",newImageAppro)
+            cv2.imshow("contourImage",contourImage)
+            cv2.waitKey(0)
+        
