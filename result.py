@@ -376,7 +376,7 @@ class result:
                             endpos = matchside.sampleptreverse
                             startpos = possibleMatch[i][0].side[possibleMatch[i][1]].samplept
                         diss =  self.disintotal(startpos,endpos)
-                        print(diss)
+                        #print(diss)
                         possibleMatch[i].append(diss)
                     match = self.smallerdistance(possibleMatch)
 
@@ -430,10 +430,105 @@ class result:
         #print("-----------------------------------------")
         #print("-----------------------------------------")
         #print("-----------------------------------------")
-        #print("-----------------------------------------")
-        self.showresult(matchvector)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        #print("-----------------------------------------")")
+        resultvector = []
+        resultvector.append([matchvector[0][0][0]])
+        for i in range(0,len(matchvector[0])):
+            resultvector.append([matchvector[0][i][2]])
+
+        for i in range(len(matchvector[3])-1,-1,-1):
+            resultvector[0].append(matchvector[3][i][0])
+
+        for i in range(0,len(matchvector[1])):
+            resultvector[len(resultvector)-1].append(matchvector[1][i][2])
+        print("-----------------------------------------------")
+        print("MAtch vecote")
+        print(matchvector)
+        print("-----------------------------------------------")
+        print("resultvector")
+        print(resultvector)
+        
+
+        for dv in range(1,len(resultvector)-1):
+            matchpiece = resultvector[dv][0]
+            matchside = self.getside(matchpiece,"RIGHT")[0]
+        
+            print("-----------------------------------------------")
+            
+            for k in range(0,len(resultvector[0])-2):
+                toppiece = resultvector[dv-1][k+1]
+                possiblepiece = []
+                matchpiece.showImage("piecseto be matched "+str(k))
+                print("-----------------------------------------------")
+                for i in range(0,len(center)):
+                    print(" center = ",i)
+                    centerpieces = center[i]
+                    for j in range(0,len(centerpieces.side)):
+                        print(" side = ",j)
+                        sideMatch = centerpieces.side[j]
+                        if(not sideMatch.isStraight and ((matchside.isConvex and sideMatch.isConcave) or (matchside.isConcave and sideMatch.isConvex))):
+                            canMatch = self.canmatchAngle(matchside,sideMatch)
+                            canMatch2 = self.canmatchAngle(self.getside(toppiece,"BOTTOM")[0],self.getside(centerpieces,"TOP")[0])
+                            if(canMatch[0] and canMatch2[0]):
+                                centerpieces.showImage("may be a match "+str(i))
+                                possiblepiece.append([i,j])
+                #for i in range(0,len(possiblepiece)):
+                #        possibleMatchm = possiblepiece[i][0]
+                #        possibleMatchm.showImage("possi piece "+str(i))
+                #        startpos = []
+                #        endpos = []
+                #        if(len(matchside.sampleptreverse) < len(possiblepiece[i][1].samplept)):
+                #            startpos = matchside.sampleptreverse
+                #            endpos = possiblepiece[i][1].samplept
+            
+                #        else:
+                #            endpos = matchside.sampleptreverse
+                #            startpos = possiblepiece[i][1].samplept
+                #        diss =  self.disintotal(startpos,endpos)
+                #        print("possi piece "+str(i)+"  = ",diss)
+                if(len(possiblepiece)==0):
+                    for i in range(0,len(center)):
+                                center[i].showImage("may be a match the only left pieec"+str(i))    
+                cv2.waitKey(0)
+
+                if(len(possiblepiece)==1):
+                    resultvector[1].append(center[possiblepiece[0][0]])
+                    matchpiece = center[possiblepiece[0][0]]
+                    matchside = self.getside(center[possiblepiece[0][0]],"RIGHT")[0]
+                    center[possiblepiece[0][0]].showImage("perfect match piece "+str(i))
+                    center.pop(possiblepiece[0][0])
+                    
+                else:
+                    distance = []
+                    for j in range(0,len(possiblepiece)):
+                        possibleMatchm = center[possiblepiece[j][0]]
+                        startpos = []
+                        endpos = []
+                        if(len(matchside.sampleptreverse) < len(center[possiblepiece[j][0]].side[possiblepiece[j][1]].samplept)):
+                            startpos = matchside.sampleptreverse
+                            endpos = center[possiblepiece[j][0]].side[possiblepiece[j][1]].samplept
+            
+                        else:
+                            endpos = matchside.sampleptreverse
+                            startpos = center[possiblepiece[j][0]].side[possiblepiece[j][1]].samplept
+                        diss =  self.disintotal(startpos,endpos)  
+                        possiblepiece[j].append(diss)
+        
+                    match = self.smallerdistance(possiblepiece)
+    
+                    center[match[0]].showImage("perfect match piece "+str(i))
+                    resultvector[1].append(center[match[0]])
+                    matchpiece = center[match[0]]
+                    matchside = self.getside(center[match[0]],"RIGHT")[0]
+
+                    center.pop(match[0])
+                        #match[0].showImage("Matched piece ")
+                
+
+                    #matchside.showTwoSides(matchside.axismatchsidereverse,possiblepiece[i][1].axismatchside,"Match Origin two sides "+str(i))
+                    #matchside.showTwoSides(matchside.sampleptreverse,possiblepiece[i][1].samplept,"Match two sides "+str(i))
+                cv2.waitKey(0)
+                cv2.destroyAllWindows()
     def imcopy(self,image,target,x=0,y=0,extra = 0,change = False):
         height, width, channels = target.shape 
         height2, width2, channels2 = image.shape  
