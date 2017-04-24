@@ -253,7 +253,43 @@ class pieces:
 
 
 
-
+    def checkforcontourcurve(self,cornera,pointa,pointb,cornerb,test=False):
+        #var=contour[0]
+        #epsilon = 0.0000000001*cv2.arcLength(var,True)
+        #allPoints = cv2.approxPolyDP(var,epsilon,True)
+        ##print(approx[0][0])
+        #startCheck = 0
+        #endCheck = 0
+        #for i in range(0, len(allPoints)):
+        #    x = allPoints[i][0][0]
+        #    y = allPoints[i][0][1]
+        #    if(x == pointa[0] and y == pointa[1]):
+        #        startcheck = i
+        #    if(x == pointb[0] and y == pointb[1]):
+        #        endcheck = i
+        #if(test):
+        #    print("startCheck  = ",startCheck)
+        #    print("endCheck  = ",endCheck)
+        #return self.CheckForCurve(startCheck,endCheck,allPoints)
+        anglea = self.getAngle(cornera,pointa)
+        angleb = self.getAngle(cornera,pointb)
+        maxangle = max(anglea,angleb)
+        flag = True
+        if((0<=anglea<=45 or anglea>=315  or  135<=anglea<=225)  and (0<=angleb<=45 or angleb>=315  or  135<=angleb<=225)):
+            flag= True
+        elif((45<anglea<135  or 225<anglea<315)  and (45<angleb<135  or 225<angleb<315)):
+            flag= True
+        else:
+            flag= False
+        anglea = self.getAngle(cornerb,pointa)
+        angleb = self.getAngle(cornerb,pointb)
+        if((0<=anglea<=45 or anglea>=315  or  135<=anglea<=225)  and (0<=angleb<=45 or angleb>=315  or  135<=angleb<=225)):
+            flag= True
+        elif((45<anglea<135  or 225<anglea<315)  and (45<angleb<135  or 225<angleb<315)):
+            flag= True
+        else:
+            flag= False
+        return flag
     def findingcorners(self,test=False):
 #getting the pieces of jigsaw
             tmpim=self.image
@@ -362,6 +398,14 @@ class pieces:
             allCorners = []
             testing=False
             #print(Possible_Corners)
+            #if(test):
+            #    newImageAppro1 = np.zeros((500,500,3), np.uint8)
+            #    for i in range(0,len(Possible_Corners)):
+            #        point1 = Possible_Corners[i]
+            #        cv2.circle(tmpim,(point1[0],point1[1]), 3, (0,255,0), 1)
+            #        cv2.imshow("Possible corner", newImageAppro1)
+            #        cv2.imshow("Piece image",self.image)
+            #        cv2.waitKey(0)
         #finding all corners
             for i in range(0,len(Possible_Corners)):
                 if(testing):
@@ -388,15 +432,17 @@ class pieces:
                     startCheck=returnedpoints[0]
                     endCheck=returnedpoints[1]
                     count=returnedpoints[2]
-                    if(count == 0 or (count>3)):
+                    if(count == 0 or (count>2)):
                         #if the count is 0 or 3 or bigger then procede
                         vaildPoint = True
-                        if(count>3):
+                        if(count>2):
                             #check if the point are valid meaning that those two point can be a corner
                             vaildPoint=self.CheckForCurve(startCheck,endCheck,approx)
+                            #if(count == 3  and vaildPoint and vaildPoint):
+                            #    vaildPoint = self.checkforcontourcurve(cornerOne, approx[startCheck][0],approx[endCheck][0],cornerTwo)
                             indexI = self.indexOf(cornerOne,approx)
                             indexJ = self.indexOf(cornerTwo,approx)
-                        if(vaildPoint):
+                        if(vaildPoint and self.isCorner(cornerOne, approx[startCheck][0],approx[endCheck][0],cornerTwo)):
                             #if it is vaild then go find points
         #----------------------------------------------------
         #Third corner point finding
@@ -409,21 +455,41 @@ class pieces:
                                     k=0
                                 if(k == i):
                                     break
-                                if(testing):
+                                if(test):
                                     print("i = ",i,"j = ",j,"k = ",k)
                                 cornerThree=Possible_Corners[k]
                                 returnedpoints = self.NumberOfPointInBetween(cornerTwo,cornerThree,approx)
                                 startCheck=returnedpoints[0]
                                 endCheck=returnedpoints[1]
                                 count=returnedpoints[2]
-                                if(count == 0 or (count>3)):
+                                if(count == 0 or (count>2)):
                                     #if the count is 0 or 3 or bigger then procede
                                     vaildPoint = True
-                                    if(count>3):
+                                    if(count>2):
                                         vaildPoint=self.CheckForCurve(startCheck,endCheck,approx)
+                                        # if cornerone and corner two had 3 number of point then try to find a point between j and k which make be a cornertwo
+                                        if( self.NumberOfPointInBetween(cornerOne,cornerTwo,approx)[2] == 3  and vaildPoint):
+                                                                    flag=True
+                                                                    dvi = j+1
+                                                                    while(dvi !=k ):
+                                                                        if(dvi >= len(Possible_Corners)):
+                                                                            dvi = 0
+                                                                        possibleCornerthree = Possible_Corners[dvi]
+                                                                        posreturnedpoints = self.NumberOfPointInBetween(cornerOne,possibleCornerthree,approx)
+                                                                        posstartCheck=returnedpoints[0]
+                                                                        posendCheck=returnedpoints[1]
+                                                                        poscount=returnedpoints[2]
+                                                                        posvaildPoint=self.CheckForCurve(posstartCheck,posendCheck,approx)
+                                                                        if(posvaildPoint):
+                                                                            flag = False
+                                                                        dvi=dvi+1
+                                                                        if(dvi >= len(Possible_Corners)):
+                                                                            dvi = 0
+                                                                    vaildPoint = flag
+
                                         indexK = self.indexOf(cornerThree,approx)
                                         indexJ = self.indexOf(cornerTwo,approx)
-                                    if(vaildPoint):
+                                    if(vaildPoint and self.isCorner(cornerTwo, approx[startCheck][0],approx[endCheck][0],cornerThree)):
             #-------------------------------------------------------------------------------------------------------
         #fourth point corner dectection
                                         l=k+1
@@ -434,7 +500,7 @@ class pieces:
                                                 l=0
                                             if(l == i):
                                                 break
-                                            if(testing):
+                                            if(test):
                                                 print("i = ",i,"j = ",j,"k = ",k,"l = ",l)
                                             #cv2.imshow("Thks dsadvakcndlkadlc",newImageAppro)
                                             #cv2.imshow("Thks dv",img)
@@ -448,18 +514,45 @@ class pieces:
         
         
         
-                                            if(count==0 or (count>3)):
+                                            if(count==0 or (count>2)):
                                                 #print("count detected = ",count)
                                                 #got four point which are valid for corner but not for sure
                                                 #need to do futher investegation
                                                 #if the count is 0 or 3 or bigger then procede
                                                 vaildPoint = True
-                                                if(count>3):
+                                                if(count>2):
                                                     #check if the point are valid meaning that those two point can be a corner
                                                     vaildPoint=self.CheckForCurve(startCheck,endCheck,approx)
+                                                    # if cornerone and corner two had 3 number of point then try to find a point between j and k which make be a cornertwo
+                                                    if( self.NumberOfPointInBetween(cornerTwo,cornerThree,approx)[2] == 3  and vaildPoint):
+                                                                    flag=True
+                                                                    dvi = k+1
+                                                                    if(test):
+                                                                        print("dvi" ,dvi)
+                                                                        print("l" ,l)
+                                                                        print("k" ,k)
+                                                                    while(dvi !=l ):
+                                                                        if(test):
+                                                                            print("dvi increment" ,dvi)
+                                                                            cv2.imshow("Thks dv",tmpim)
+                                                                            cv2.waitKey(0);
+                                                                        if(dvi >= len(Possible_Corners)):
+                                                                            dvi = 0
+                                                                        possibleCornerthree = Possible_Corners[dvi]
+                                                                        posreturnedpoints = self.NumberOfPointInBetween(cornerTwo,possibleCornerthree,approx)
+                                                                        posstartCheck=returnedpoints[0]
+                                                                        posendCheck=returnedpoints[1]
+                                                                        poscount=returnedpoints[2]
+                                                                        posvaildPoint=self.CheckForCurve(posstartCheck,posendCheck,approx)
+                                                                        if(posvaildPoint):
+                                                                            flag = False
+                                                                        dvi=dvi+1
+                                                                        if(dvi >= len(Possible_Corners)):
+                                                                            dvi = 0
+                                                                    vaildPoint = flag
                                                     indexK = self.indexOf(cornerThree,approx)
                                                     indexL = self.indexOf(cornerFour,approx)
-                                                if(vaildPoint):
+                                                if(vaildPoint and self.isCorner(cornerThree, approx[startCheck][0],approx[endCheck][0],cornerFour)):
                                                     vaildPoint = True
                                                     
                                                     if(vaildPoint):
@@ -474,7 +567,7 @@ class pieces:
                                                         #print("corners Fir",i)
                                                         #print("end check  = ",endCheck)
                                                         #print("countout = ",count)
-                                                        if(count == 0 or (count>3)):
+                                                        if(count == 0 or (count>2)):
                                                             #print("-------------------------------------------------")
                                                             #print("i = ",i)
                                                             #print("j = ",j)
@@ -487,13 +580,31 @@ class pieces:
                                                             vaildPoint = True
                                                             angle5=0
                                                             angle6=0
-                                                            if(count>3):
+                                                            if(count>2):
                                                                 #check if the point are valid meaning that those two point can be a corner
                                                                 vaildPoint=self.CheckForCurve(startCheck,endCheck,approx)
+                                                                if( self.NumberOfPointInBetween(cornerThree,cornerFour,approx)[2] == 3  and vaildPoint):
+                                                                    flag=True
+                                                                    dvi = l+1
+                                                                    while(dvi !=i ):
+                                                                        if(dvi >= len(Possible_Corners)):
+                                                                            dvi = 0
+                                                                        possibleCornertwo = Possible_Corners[dvi]
+                                                                        posreturnedpoints = self.NumberOfPointInBetween(cornerThree,possibleCornertwo,approx)
+                                                                        posstartCheck=returnedpoints[0]
+                                                                        posendCheck=returnedpoints[1]
+                                                                        poscount=returnedpoints[2]
+                                                                        posvaildPoint=self.CheckForCurve(posstartCheck,posendCheck,approx)
+                                                                        if(posvaildPoint):
+                                                                            flag = False
+                                                                        dvi=dvi+1
+                                                                        if(dvi >= len(Possible_Corners)):
+                                                                            dvi = 0
+                                                                    vaildPoint = flag
                                                                 indexI = self.indexOf(cornerOne,approx)
                                                                 indexL = self.indexOf(cornerFour,approx)
         
-                                                            if(vaildPoint):
+                                                            if(vaildPoint and self.isCorner(cornerFour, approx[startCheck][0],approx[endCheck][0],cornerOne)):
                                                                 #angle and the last validation?????
                                                                 
                                                                 p = path.Path([(cornerOne[0],cornerOne[1])
@@ -966,6 +1077,24 @@ class pieces:
                 newAngle = 0
         #print("angle (old , new ) = ( ",angle," ; ", newAngle)
         return newAngle
+    def isCorner(self,pointa,nextpoint,prevpoint,pointb):
+        #print("pointa = ",pointa)
+        #print("nextpoint = ",nextpoint)
+        #print("prevpoint = ",prevpoint)
+        #print("pointb = ",pointb)
+        anglea = self.getAngle(pointa,nextpoint)
+        angleb = self.getAngle(prevpoint,pointb)
+        if((0<=anglea<=45 or anglea>=315  or  135<=anglea<=225)  and (0<=angleb<=45 or angleb>=315  or  135<=angleb<=225)):
+            return True
+        elif((45<anglea<135  or 225<anglea<315)  and (45<angleb<135  or 225<angleb<315)):
+            return True
+        else:
+            return False
+        #minangle = min(anglea,angleb)
+        #maxangle = max(anglea,angleb)
+        #if(maxangle - minangle <60):
+        #    return True 
+        #return False
     def showGraphs(self):
         #print("------------------------------------------------------- ")
         #newImageAppro1 = np.zeros((500,500,3), np.uint8)

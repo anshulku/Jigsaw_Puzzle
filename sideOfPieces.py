@@ -58,6 +58,17 @@ class sideOfPieces:
                 return self.cornerRight
             else:
                 return self.cornerLeft
+    def getmaxcornerpoint(self):
+        if(self.whichaxis == "X"):
+            if( self.cornerRight[0] < self.cornerLeft[0]):
+                return self.cornerLeft
+            else:
+                return self.cornerRight
+        else:
+            if( self.cornerRight[1] < self.cornerLeft[1]):
+                return self.cornerLeft
+            else:
+                return self.cornerRight
     def get_line(x1, y1, x2, y2):
         points = []
         issteep = abs(y2-y1) > abs(x2-x1)
@@ -610,6 +621,7 @@ class sideOfPieces:
 
       #checks if the two angle send can have a match for a piece or not
     def setwhichssection(self,anglea):
+        
         if((0<=anglea<=45 or anglea>=315  or  135<=anglea<=225) ):
             self.whichaxis = "X"
         elif((45<anglea<135  or 225<anglea<315)):
@@ -667,6 +679,9 @@ class sideOfPieces:
             self.setaboveorbelow()
             # samples the data across the section of the original data
             self.setsubsampling()
+        if(self.isStraight):
+            angle = self.getAngle(self.cornerRight,self.cornerLeft)
+            self.setwhichssection(angle)
             
 
     def testingthexaiss(self,name="null"):

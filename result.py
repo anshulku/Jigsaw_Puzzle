@@ -14,7 +14,7 @@ from matching import matching
 from PIL import Image
 
 
-class result:
+class Result:
 
     def __init__(self, pieces):
         self.jigsawpieces=pieces
@@ -119,7 +119,7 @@ class result:
     #
     #decides if the two side can match or not
     #this is decided on the basics of that the lenght and the angle of the side
-    def canmatchAngle(self,sidea,sideb):
+    def canmatchAngle(self,sidea,sideb,test=False):
         pointa = sidea.axismatchside
         pointb = sideb.axismatchside
         canMatch = True
@@ -127,23 +127,26 @@ class result:
         angleb = self.getAngle(pointb[0],pointb[len(pointb)-1])
         section = self.samesection(anglea,angleb)
         canMatch = section[0]
-        #print("PASS OR FAIL FOR WHICHAXIS =",canMatch)
+        if(test):
+            print("PASS OR FAIL FOR WHICHAXIS =",canMatch)
         
         #checking the length of the sides
-        lengtha = self.lengthofside(sidea)
-        lengthb = self.lengthofside(sideb)
+        lengtha = sidea.lengthofside
+        lengthb = sideb.lengthofside
         test1 =max(lengtha,lengthb)
         test2 =min(lengtha,lengthb)
-        if(test1 - test2 > 4):
+        if(test1 - test2 > 10):
            canMatch=False
         
-        #print("PASS OR FAIL FOR LENGTH =",canMatch)
-        #print("lengtha =",lengtha)
-        #print("lengthb =",lengthb)
-        #print("max(lengtha,lengthb) =",max(lengtha,lengthb))
-        #print("min(lengtha,lengthb) =",min(lengtha,lengthb))
-        #print("test1-test2 =",test1-test2)
-        #print("max(lengtha,lengthb) - min(lengtha,lengtha) =",(max(lengtha,lengthb) - min(lengtha,lengtha)))
+        if(test):
+            
+            print("PASS OR FAIL FOR LENGTH =",canMatch)
+            print("lengtha =",lengtha)
+            print("lengthb =",lengthb)
+            print("max(lengtha,lengthb) =",max(lengtha,lengthb))
+            print("min(lengtha,lengthb) =",min(lengtha,lengthb))
+            print("test1-test2 =",test1-test2)
+            #print("max(lengtha,lengthb) - min(lengtha,lengtha) =",(max(lengtha,lengthb) - min(lengtha,lengtha)))
         approxa = sidea.approxmatchside
         approxb = sideb.approxmatchside
         if(section[0]):
@@ -153,7 +156,10 @@ class result:
             #print(" :: flaga ; ",flaga," :: flagb ; ",flagb)
             if(not flaga==flagb):
                 canMatch=False
-        #print("PASS OR FAIL FOR ABOVEORBELOW =",canMatch)
+
+        if(test):
+            
+            print("PASS OR FAIL FOR ABOVEORBELOW =",canMatch)
         if(section[0]):
             return [canMatch,section[1]]
         else:
@@ -187,10 +193,9 @@ class result:
         possiblebordermacth = []
         for i in range(0,len(self.jigsawpieces)):
             eachPiece = self.jigsawpieces[i]
-
-                
             if(eachPiece.isCornerPiece):
-                if(eachPiece.name == "TL"): self.upperleftcorner = eachPiece
+                if(eachPiece.name == "TL"): 
+                    self.upperleftcorner = eachPiece
                 if(eachPiece.name == "TR"):self.upperrightcorner = eachPiece
                 if(eachPiece.name == "BL"):self.lowwerleftcorner = eachPiece
                 if(eachPiece.name == "BR"):self.lowwerrightcorner = eachPiece
@@ -201,16 +206,16 @@ class result:
             if(eachPiece.isCenterPiece):
                 center.append(eachPiece)
         #match = matching()
-        #for i in range(0,len(corner)):
-        #    eachPiece = corner[i]
-        #    sidea = eachPiece.side[0]
-        #    sideb = eachPiece.side[1]
-        #    sidec = eachPiece.side[2]
-        #    sided = eachPiece.side[3]
-        #    print("sidea.direction = ",sidea.direction,"  sidea.isStraight=",sidea.isStraight)
-        #    print("sideb.direction = ",sideb.direction,"  sidea.isStraight=",sideb.isStraight)
-        #    print("sidec.direction = ",sidec.direction,"  sidea.isStraight=",sidec.isStraight)
-        #    print("sided.direction = ",sided.direction,"  sidea.isStraight=",sided.isStraight)
+        #for i in range(0,len(border)):
+        #    eachPiece = border[i]
+        ##    sidea = eachPiece.side[0]
+        ##    sideb = eachPiece.side[1]
+        ##    sidec = eachPiece.side[2]
+        ##    sided = eachPiece.side[3]
+        ##    print("sidea.direction = ",sidea.direction,"  sidea.isStraight=",sidea.isStraight)
+        ##    print("sideb.direction = ",sideb.direction,"  sidea.isStraight=",sideb.isStraight)
+        ##    print("sidec.direction = ",sidec.direction,"  sidea.isStraight=",sidec.isStraight)
+        ##    print("sided.direction = ",sided.direction,"  sidea.isStraight=",sided.isStraight)
 
         #    eachPiece.showImage("corner piece "+str(i))
             
@@ -284,18 +289,26 @@ class result:
             #getting the end corner
             piecematch = cornerstart
             rowvector = []
+            dvtest = 0
             while(not complete):
                 #print("***********************************************************************************")
                 possibleMatch = []
+                piecematch.showImage("piece To Be Matched")
                 for k in range(0, len(border)):
                     #print("--------------------------------------------------------------------------")
                     #print("Border ",k)
                     borderpiece = border[k]
                     for l in range(0, len(borderpiece.side)):
-                        #print("Side ",l)
+                        print("Side ",l)
                         sideMatch = borderpiece.side[l]
                         if((not sideMatch.isStraight) and ((matchside.isConvex and sideMatch.isConcave) or (matchside.isConcave and sideMatch.isConvex))):
                             canMatch = self.canmatchAngle(matchside,sideMatch)
+                            #if(dvtest == 3):
+                            #if(start == 2):
+                            #        borderpiece.showImage("Border Image "+ str(k))
+                            #        #sideMatch.showside(borderpiece.side[l].originalPoints,"BEEN MATCHED")
+                            #        canMatch = self.canmatchAngle(matchside,sideMatch,test=True)
+                            #        cv2.waitKey(0)
                             if(cornerstart.name == "TL" and not self.getside(borderpiece,"LEFT")[0].isStraight):
                                 canMatch[0] = False
                             if(cornerstart.name == "BL" and not self.getside(borderpiece,"BOTTOM")[0].isStraight):
@@ -307,26 +320,24 @@ class result:
                             if(canMatch[0]):
                                 possibleMatch.append([borderpiece,l])
                                 #print("MAYBE ")
-                #piecematch.showImage("piecematch end")
                 #endmatchside.showside(cornerend.side[3].axismatchside,"love")
                 canMatch=False
                 if((not endmatchside.isStraight) and ((matchside.isConvex and endmatchside.isConcave) or (matchside.isConcave and endmatchside.isConvex))):
                     canMatch = self.canmatchAngle(matchside,endmatchside)
                     
                 if(canMatch):
-                    print("CORNER MAYBE")
                     possibleMatch.append([cornerend,endsidei])
 
-
-                #for i in range(0,len(possibleMatch)):
-                #    possibleMatchm = possibleMatch[i][0]
-                #    possibleMatchm.showImage("possi piece "+str(i))
+                
+                for i in range(0,len(possibleMatch)):
+                        possibleMatchm = possibleMatch[i][0]
+                        possibleMatchm.showImage("Possible piece match"+str(i))
                     #matchside.showTwoSides(matchside.axismatchsidereverse,possibleMatchm.side[possibleMatch[i][1]].axismatchside,"Match two sides "+str(i))
                     #matchside.showTwoSides(matchside.sampleptreverse,possibleMatchm.side[possibleMatch[i][1]].samplept,"Match two sides "+str(i))
 
                 if(len(possibleMatch) == 1):
                     rowvector.append([piecematch,matchside.direction,possibleMatch[0][0],possibleMatch[0][0].side[possibleMatch[0][1]].direction])
-                    #possibleMatch[0][0].showImage("Matched piece ")
+                    possibleMatch[0][0].showImage("Matched piece ")
                     piecematch = possibleMatch[0][0]
                     if(cornerstart.name == "TL"):  
                         matchside = self.getside(piecematch,"BOTTOM")[0]
@@ -375,13 +386,19 @@ class result:
                         else:
                             endpos = matchside.sampleptreverse
                             startpos = possibleMatch[i][0].side[possibleMatch[i][1]].samplept
-                        diss =  self.disintotal(startpos,endpos)
-                        #print(diss)
+
+                        lena = matchside.lengthofside
+                        lenb = possibleMatch[i][0].side[possibleMatch[i][1]].lengthofside
+                        maxlen = max(lena,lenb)
+                        minlen = min(lena,lenb)
+                        diss =  self.disintotal(startpos,endpos) +(maxlen-minlen)
+                        print("possible piece  = ",i)
+                        print("distance  = ",diss)
                         possibleMatch[i].append(diss)
                     match = self.smallerdistance(possibleMatch)
 
                     rowvector.append([piecematch,matchside.direction,match[0],match[0].side[match[1]].direction])
-                    #match[0].showImage("Matched piece ")
+                    match[0].showImage("Matched from here piece ")
                     
                     piecematch = match[0]
                     if(cornerstart.name == "TL"):  
@@ -421,8 +438,11 @@ class result:
                             end = end+1
                     #disintotal
                 #self.showresult(rowvector)
-                #cv2.waitKey(0)
-                #cv2.destroyAllWindows()
+                dvtest = dvtest+1
+                             #if(start==1):
+                cv2.waitKey(0)
+                print("--------------------------------------------------------------")
+                cv2.destroyAllWindows()
         #print(matchvector[0])
         #print("-----------------------------------------")
         #print("-----------------------------------------")
@@ -441,14 +461,11 @@ class result:
 
         for i in range(0,len(matchvector[1])):
             resultvector[len(resultvector)-1].append(matchvector[1][i][2])
-        print("-----------------------------------------------")
-        print("MAtch vecote")
-        print(matchvector)
-        print("-----------------------------------------------")
-        print("resultvector")
+        resultvector[0][0].showImage("FirstPiece")
         print(resultvector)
-        
-
+        print("---------------------------------------")
+        print(matchvector)
+        #cv2.waitKey(0)
         for dv in range(1,len(resultvector)-1):
             matchpiece = resultvector[dv][0]
             matchside = self.getside(matchpiece,"RIGHT")[0]
@@ -458,7 +475,8 @@ class result:
             for k in range(0,len(resultvector[0])-2):
                 toppiece = resultvector[dv-1][k+1]
                 possiblepiece = []
-                matchpiece.showImage("piecseto be matched "+str(k))
+                matchpiece.showImage("PIECE be matched "+str(k))
+                toppiece.showImage(" TOP  PIECE be matched "+str(k))
                 print("-----------------------------------------------")
                 for i in range(0,len(center)):
                     print(" center = ",i)
@@ -470,11 +488,11 @@ class result:
                             canMatch = self.canmatchAngle(matchside,sideMatch)
                             canMatch2 = self.canmatchAngle(self.getside(toppiece,"BOTTOM")[0],self.getside(centerpieces,"TOP")[0])
                             if(canMatch[0] and canMatch2[0]):
-                                centerpieces.showImage("may be a match "+str(i))
+                                #centerpieces.showImage("Border Pice cam in mat "+str(i))
                                 possiblepiece.append([i,j])
                 #for i in range(0,len(possiblepiece)):
-                #        possibleMatchm = possiblepiece[i][0]
-                #        possibleMatchm.showImage("possi piece "+str(i))
+                #        possibleMatchm = center[possiblepiece[i][0]]
+                #        possibleMatchm.showImage("posiible arry "+str(i))
                 #        startpos = []
                 #        endpos = []
                 #        if(len(matchside.sampleptreverse) < len(possiblepiece[i][1].samplept)):
@@ -486,16 +504,17 @@ class result:
                 #            startpos = possiblepiece[i][1].samplept
                 #        diss =  self.disintotal(startpos,endpos)
                 #        print("possi piece "+str(i)+"  = ",diss)
-                if(len(possiblepiece)==0):
-                    for i in range(0,len(center)):
-                                center[i].showImage("may be a match the only left pieec"+str(i))    
-                cv2.waitKey(0)
+                #if(len(possiblepiece)==0):
+                #    for i in range(0,len(center)):
+                #                center[i].showImage("may be a match the only left pieec"+str(i))    
+                #cv2.waitKey(0)
+                cv2.destroyAllWindows()
 
                 if(len(possiblepiece)==1):
-                    resultvector[1].append(center[possiblepiece[0][0]])
+                    resultvector[dv].append(center[possiblepiece[0][0]])
                     matchpiece = center[possiblepiece[0][0]]
                     matchside = self.getside(center[possiblepiece[0][0]],"RIGHT")[0]
-                    center[possiblepiece[0][0]].showImage("perfect match piece "+str(i))
+                    #center[possiblepiece[0][0]].showImage("perfect match piece "+str(i))
                     center.pop(possiblepiece[0][0])
                     
                 else:
@@ -504,6 +523,10 @@ class result:
                         possibleMatchm = center[possiblepiece[j][0]]
                         startpos = []
                         endpos = []
+
+                        topsideA = self.getside(possibleMatchm,"TOP")[0]
+                        bottomsideA = self.getside(toppiece,"BOTTOM")[0]
+
                         if(len(matchside.sampleptreverse) < len(center[possiblepiece[j][0]].side[possiblepiece[j][1]].samplept)):
                             startpos = matchside.sampleptreverse
                             endpos = center[possiblepiece[j][0]].side[possiblepiece[j][1]].samplept
@@ -511,151 +534,133 @@ class result:
                         else:
                             endpos = matchside.sampleptreverse
                             startpos = center[possiblepiece[j][0]].side[possiblepiece[j][1]].samplept
-                        diss =  self.disintotal(startpos,endpos)  
+                        diss =  self.disintotal(startpos,endpos) 
+
+                        if(len(topsideA.sampleptreverse) < len(bottomsideA.samplept)):
+                            startpos = topsideA.sampleptreverse
+                            endpos = bottomsideA.samplept
+            
+                        else:
+                            endpos = topsideA.sampleptreverse
+                            startpos = bottomsideA.samplept
+                        diss =  diss + self.disintotal(startpos,endpos)  
+
                         possiblepiece[j].append(diss)
         
                     match = self.smallerdistance(possiblepiece)
     
-                    center[match[0]].showImage("perfect match piece "+str(i))
-                    resultvector[1].append(center[match[0]])
+                    #center[match[0]].showImage("perfect match piece "+str(i))
+                    resultvector[dv].append(center[match[0]])
                     matchpiece = center[match[0]]
                     matchside = self.getside(center[match[0]],"RIGHT")[0]
 
                     center.pop(match[0])
                         #match[0].showImage("Matched piece ")
-                
 
+                matchpiece.showImage("Matched piece ")
+                #cv2.waitKey(0)
+                #cv2.destroyAllWindows()
                     #matchside.showTwoSides(matchside.axismatchsidereverse,possiblepiece[i][1].axismatchside,"Match Origin two sides "+str(i))
                     #matchside.showTwoSides(matchside.sampleptreverse,possiblepiece[i][1].samplept,"Match two sides "+str(i))
-                cv2.waitKey(0)
-                cv2.destroyAllWindows()
+                #cv2.waitKey(0)
+                #cv2.destroyAllWindows()
+        k = 1
+        for i in range(len(matchvector[2])-1,0,-1):
+            resultvector[k].append(matchvector[2][i][0])
+            k =k +1
+        print(resultvector)
+        return [self.showresult(resultvector), resultvector]
     def imcopy(self,image,target,x=0,y=0,extra = 0,change = False):
         height, width, channels = target.shape 
         height2, width2, channels2 = image.shape  
-        for i in range(int(x),height2+int(x)):
+        for i in range(int(x),height2+ int(x)):
             for j in range(int(y),width2+int(y)):
-                test = image[i-x][j-y]
+                test = image[i-int(x)][j-int(y)]
                 b = test[0]
                 g = test[1]
                 r = test[2]
                 if(b>230 and g>230 and r>230):
                     if(change):
-                        test = [0,0,0]
+                        b2 = target[i][j][0]
+                        g2 = target[i][j][1]
+                        r2 = target[i][j][2]
+                        if(  r2==255 and b2==255 and g2 ==255):
+                             test = target[i][j]
+                        else:
+                            test = [255,255,255]
                     else:
                         test = target[i][j]
                 target[i][j] = test
         return [x,y]
-    def showresult(self,rowvector):
-        newImageAppro = np.zeros((700,700,3), np.uint8)  
+    
+    def showresult(self,resultvector):
+        newImageAppro = np.zeros((3000,3000,3), np.uint8)  
+        for i in range(0,700):
+            for j in range(0,700):
+                newImageAppro[i][j] = [255,255,255]
         Oheight = 0
-        l = rowvector[0]
-        b = rowvector[1]
-        r = rowvector[2]
-        t = rowvector[3]  
-        point = []
-        for i in range(0,len(l)):  
-            imagetesting = l[i][0].image
-            height, width, channels = imagetesting.shape  
-            if(i == len(l)-1):
-                imagetesting2 = l[i][2].image
-                height2, width2, channels2 = imagetesting2.shape
-            if(i==0):
-                point = self.imcopy(imagetesting,newImageAppro,x=Oheight,change=True)
-                leftside = self.getside(l[i][0],"LEFT")[0]
-                minpoint = leftside.getmincornerpoint()
-                extra = round(self.getDistance([minpoint[0],0],minpoint) )
-                Oheight=extra +round( self.getDistance(leftside.cornerRight,leftside.cornerLeft) )
-            else: 
-                leftside = self.getside(l[i][0],"LEFT")[0]
-                minpoint = leftside.getmincornerpoint()
-                extra = round(self.getDistance([minpoint[0],0],minpoint) )
-                cutting = extra
-                point = self.imcopy(imagetesting,newImageAppro,x=Oheight-cutting)
-                leftside = self.getside(l[i][0],"LEFT")[0]
-                Oheight=Oheight + round(self.getDistance(leftside.cornerRight,leftside.cornerLeft) )
-            if(i == len(l)-1):
-                leftside = self.getside(l[i][2],"LEFT")[0]
-                minpoint = leftside.getmincornerpoint()
-                extra = round(self.getDistance([minpoint[0],0],minpoint) )
-                cutting = extra
-                point = self.imcopy(imagetesting2,newImageAppro,x=Oheight-cutting)
+        xHeight = [0]*len(resultvector[0])
+        #for i in range(0,4):
+        #    xHeight.append(0)
+        Owidth = 0
+        for i in range(0,len(resultvector)):
+            Owidth=0
+            print("i loop" , i)
+            for j in range(0,len(resultvector[i])):
+                print("j loop" , j)
+                Oheight2 = xHeight[j]
+                if (not i== 0):
+                    resultimage = resultvector[i-1][j].image
+                    height, width, channels = resultimage.shape 
+                    leftside = self.getside(resultvector[i-1][j],"LEFT")[0]
+                    minpoint = leftside.getmaxcornerpoint()
+                    extra1 = round(self.getDistance([minpoint[0],height],minpoint)) 
+
+                    leftside = self.getside(resultvector[i][j],"LEFT")[0]
+                    minpoint = leftside.getmincornerpoint()
+                    extra = round(self.getDistance([minpoint[0],0],minpoint)) 
+                    xHeight[j] = xHeight[j]-extra -extra1
+
+                resultimage = resultvector[i][j].image
+                height, width, channels = resultimage.shape 
+                topside = self.getside(resultvector[i][j],"TOP")[0]
+                if(not j == 0):
+                    minpoint = topside.getmincornerpoint()
+                    extra = round(self.getDistance([0,minpoint[1]],minpoint) )
+                    Owidth = Owidth -extra
+                    
+                self.imcopy(resultimage,newImageAppro,y= Owidth,x=xHeight[j])
+    
+                minpoint = topside.getmaxcornerpoint()
+                extra = round(self.getDistance([width,minpoint[1]],minpoint) )
+
+                Owidth = Owidth + width -extra
+                #print("xHeight[j]  =  ",xHeight)
+                #print("xHeight[j]add  =  ",xHeight[j]+2)
+                print("Loop i ",i)
+                leftside = self.getside(resultvector[i-1][j],"LEFT")[0] #error here
+                minpoint = leftside.getmaxcornerpoint()
+                extra1 = round(self.getDistance([minpoint[0],height],minpoint)) 
+                xHeight[j] = int(xHeight[j])+int(height)
+                #print("Owidth  =  ",Owidth)
             
 
-        bottomside = self.getside(l[len(l)-1][2],"BOTTOM")[0]
-        minpoint = bottomside.getmincornerpoint()
-        extra = round(self.getDistance([0,minpoint[1]],minpoint) )
 
-        Owidth= extra +round( self.getDistance(bottomside.cornerRight,bottomside.cornerLeft) )
-        Oheight = point[0]
- 
-        print("  L  = ",l) 
-        print("-----------------------------------------")
-        print("  B  = ",r)
-        for i in range(0,len(b)):   
-            imagetesting = b[i][2].image
-            height, width, channels = imagetesting.shape 
-
-            bottomside = self.getside(b[i][2],"BOTTOM")[0]
-            minpoint = bottomside.getmincornerpoint()
-            extra = round(self.getDistance([minpoint[0],0],minpoint) )
-            cutting = extra
-            point = self.imcopy(imagetesting,newImageAppro,x=Oheight,y=Owidth-cutting) 
-            Owidth=Owidth + round(self.getDistance(bottomside.cornerRight,bottomside.cornerLeft) )
-            
-            
-            #for i in range(Oheight,500):
-            #    for j in range(0,500):
-            #        copy = [0,0,0]
-            #        if(i<height and j<width):
-            #            copy=imagetesting[i-Oheight][j]
-
-            #        if(i>=height and flag):
-            #            Oheight = Oheight + height
-            #            flag = False
-
-            #        if(i == len(rowvector)-1):
-            #            if(i>=height and (i-Oheight)<height2 and j<width2):
-            #                copy=imagetesting2[i-Oheight][j]
-            #        newImageAppro[i][j] = copy
-        cv2.imshow("testing",newImageAppro)
-        #til = Image.new("RGB",(500,500))
-        #til.paste(rowvector[0][0].image)
-        #til.save("testtiles.png")
-        #for i in range(0,len(corner)):
-        #    eachPiece = corner[i]
-        #    print("Corner ",i)
-        #    for j in range(0,len(eachPiece.side)):
-        #        side = eachPiece.side[j]
-        #        if(not side.isStraight):
-        #            print("Side ",j)
-        #            possibleMatch = []
-        #            for k in range(0, len(border)):
-        #                borderpiece = border[k]
-        #                print("--------------------------------------------------------------------------")
-        #                print("Border ",k)
-        #                for l in range(0, len(borderpiece.side)):
-        #                    sideMatch = borderpiece.side[l]
-        #                    if((not sideMatch.isStraight) and ((side.isConvex and sideMatch.isConcave) or (side.isConcave and sideMatch.isConvex))):
-        #                        print("Side ",l)
-        #                        print("sideMatch.isStraight ",sideMatch.isStraight)
-        #                        canMatch = self.canmatchAngle(side,sideMatch)
-        #                        if(canMatch[0]):
-        #                            possibleMatch.append([borderpiece,l,k])
-
-        #            eachPiece.showImage("corner piece "+str(i)+"  side "+str(j))
-        #            for k in range(0,len(possibleMatch)):
-        #                possibleMatchm = possibleMatch[k][0]
-
-        #                possibleMatchm.showImage("Border piece "+str(possibleMatch[k][2])+"  side "+str(possibleMatch[k][1]))
-        #            cv2.waitKey(0)
-        #            cv2.destroyAllWindows()
+            #Oheight =    height+ Oheight
+        return newImageAppro
 
     def smallerdistance(self,possibleoutcome):
         smallindex = 0
         smallDis = possibleoutcome[0][2]
+        print("SMALLEST DISTNACE  = ",smallindex)
         for i in range(0,len(possibleoutcome)):
-            if(possibleoutcome[i][2] < smallDis):
+            if(possibleoutcome[i][2] < possibleoutcome[smallindex][2]):
+                print("SMALLEST DISTNACE WAS  = ",possibleoutcome[smallindex][2])
+                print("true or not = ",possibleoutcome[i][2] < smallDis)
                 smallindex = i
+                print("SMALLEST DISTNACE  = ",smallindex)
+                print("SMALLEST DISTNACE IS  = ",possibleoutcome[i][2])
+        print("SMALLEST DISTNACE  = ",smallindex)
         return possibleoutcome[smallindex]
     def disintotal(self,grapha,graphb):
         dis = 0
