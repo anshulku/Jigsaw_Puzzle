@@ -22,12 +22,6 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="arround.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="BackupDVS31.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="DJigsawEins.py" />
     <Compile Include="DvHpHough.py">
       <SubType>Code</SubType>
@@ -39,12 +33,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="BlobDectector.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="match.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="matching.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="pieces.py">

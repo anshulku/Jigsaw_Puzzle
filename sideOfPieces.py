@@ -630,7 +630,6 @@ class sideOfPieces:
     #tell if the graph is going in up direction or in below direction
     def setaboveorbelow(self):
         eq = self.linerEquation(self.approxmatchside[1],self.approxmatchside[len(self.approxmatchside)-2])
-        print("eq  ",eq)
         flag = True
         if(self.whichaxis == "X"):
             if(eq[0]==0):
