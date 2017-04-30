@@ -11,6 +11,10 @@ from matplotlib import path
 from sideOfPieces import sideOfPieces
 from pieces import pieces
 from PIL import Image
+from colormath.color_objects import sRGBColor, LabColor
+from colormath.color_conversions import convert_color
+from colormath.color_diff import delta_e_cie2000
+
 
 
 class Result:
@@ -25,7 +29,8 @@ class Result:
         self.upperrightcorner = None
         self.lowwerleftcorner = None
         self.lowwerrightcorner = None
-
+        self.useColor = False  
+        self.useShape = False
     """
         get the angle between the two point
         The angle return is between 0 and 360
@@ -109,10 +114,17 @@ class Result:
         return the solved puzzle
     """
     def getresult(self):
+        useColor =True
+        useShape = True 
+        if(self.useColor or self.useShape):
+            useShape = self.useShape
+            useColour = self.useColor
         # sets the corner pieces, border pieces and center pieces
         corner = []
         border = []
         center = []
+        if(len(self.jigsawpieces)<3):
+            return ["PIECE_MISSING"]
         for i in range(0,len(self.jigsawpieces)):
             eachPiece = self.jigsawpieces[i]
             if(eachPiece.isCornerPiece):
@@ -126,7 +138,10 @@ class Result:
                 border.append(eachPiece)
             if(eachPiece.isCenterPiece):
                 center.append(eachPiece)
-
+        if(len(corner)>4):
+            return ["MIX_PUZZLE"]
+        if(len(corner)<3):
+            return ["PIECE_MISSING"]
         # making the corner array arrange in the anti-clockwise order
         cornermatch = [self.upperleftcorner,
                         self.lowwerleftcorner,
@@ -202,11 +217,13 @@ class Result:
             while(not complete):
                 # possible matchs are none right now
                 possibleMatch = []
+                #piecematch.showImage("PIEC to match")
+                #print("STUCK")
                 for k in range(0, len(border)):
                     borderpiece = border[k]
                     for l in range(0, len(borderpiece.side)):
                         sideMatch = borderpiece.side[l]
-                        if((not sideMatch.isStraight) and ((matchside.isConvex and sideMatch.isConcave) or (matchside.isConcave and sideMatch.isConvex))):
+                        if((not sideMatch.isStraight) and ((matchside.isConvex and sideMatch.isConcave) or (matchside.isConcave and sideMatch.isConvex)) and not piecematch == borderpiece):
                             # if the l side in k border can be a match check for its length and axis
                             canMatch = self.canmatchAngle(matchside,sideMatch)
                             # also check if we are matching the right border with the right corner or not
@@ -228,13 +245,15 @@ class Result:
                     canMatch = self.canmatchAngle(matchside,endmatchside)
                 if(canMatch):
                     possibleMatch.append([cornerend,endsidei])
-      
+                if(len(possibleMatch) == 0):
+                    return ["FAILED"]
                 if(len(possibleMatch) == 1):
                     # if their is only one possible match then add it in rowvector 
                     rowvector.append([piecematch,matchside.direction,possibleMatch[0][0],possibleMatch[0][0].side[possibleMatch[0][1]].direction])
                     #set the next piece to be match
                     piecematch = possibleMatch[0][0]
 
+                    #piecematch.showImage("MATCHED to match")
                     # checking if the cycle need to be changed
                     if(cornerstart.name == "TL"):  
                         matchside = self.getside(piecematch,"BOTTOM")[0]
@@ -289,9 +308,38 @@ class Result:
                         lenb = possibleMatch[i][0].side[possibleMatch[i][1]].lengthofside
                         maxlen = max(lena,lenb)
                         minlen = min(lena,lenb)
+                        startc = []
+                        endc = []
+                        if(len(matchside.colourreverse) < len(possibleMatch[i][0].side[possibleMatch[i][1]].colour)):
+                            startc = matchside.colourreverse
+                            endc = possibleMatch[i][0].side[possibleMatch[i][1]].colour
+                        else:
+                            endc = matchside.colourreverse
+                            startc = possibleMatch[i][0].side[possibleMatch[i][1]].colour
+                        Coldis = self.colourintotal(startc,endc)
                         # calculting the different in the graph of the two and adding the difference in the length of the graph
                         # length is also used since the perfect match will have min(maxlen-minlen) and min(self.disintotal(startpos,endpos))
-                        distance =  self.disintotal(startpos,endpos) +(maxlen-minlen)
+                        distance =  self.disintotal(startpos,endpos) +(maxlen-minlen) 
+
+                        #possibleMatch[i][0].showImage("Piece "+str(i))
+                        #print("-----------------------------------------------")
+                        #print(" piece "+str(i), "  = ",distance)
+                        #print("Coldis piece "+str(i), "  = ",Coldis)    
+                        distance = 0
+                        if(useColor and not useShape):
+                            distance = (maxlen-minlen)+Coldis
+                        elif(useShape and not useColor):
+                            distance =  self.disintotal(startpos,endpos) +(maxlen-minlen)
+                        else:
+                            distance =  self.disintotal(startpos,endpos) +(maxlen-minlen)+Coldis
+                    
+                        distance =  self.disintotal(startpos,endpos) +(maxlen-minlen)+Coldis
+                        #if(cornerstart.name =="BL"):
+                        #    #self.showSubsample(matchside.sampleptreverse,possibleMatch[i][0].side[possibleMatch[i][1]].samplept," Sub sample Of Piece : "+str(i))
+                        ##    matchside.colour(piecematch.image)
+                        #    piecematch.testinginnercontour()
+                        #    cv2.waitKey(0)
+                        #print("-----------------------------------------------")
                         # append the distance with the possiblematch piece
                         possibleMatch[i].append(distance)
                     # gets the piece with smallest distance 
@@ -303,6 +351,7 @@ class Result:
 
                     #set the next piece to be match
                     piecematch = match[0]
+                    #piecematch.showImage("MATCHED to match")
                     # checking if the cycle need to be changed
                     if(cornerstart.name == "TL"):  
                         matchside = self.getside(piecematch,"BOTTOM")[0]
@@ -339,6 +388,8 @@ class Result:
                             complete = True
                             start = start+1
                             end = end+1
+                #cv2.waitKey(0)
+                #cv2.destroyAllWindows()
         resultvector = []
         resultvector.append([matchvector[0][0][0]])
         # addint the result of matchvector in resultvector
@@ -371,8 +422,8 @@ class Result:
             matchpiece = resultvector[dv][0]
             # the side to be matched is right
             matchside = self.getside(matchpiece,"RIGHT")[0]
-            
             for k in range(0,len(resultvector[0])-2):
+                #matchpiece.showImage("PIECE to be matched")
                 #finds the match for each piece in the row (column of result vector)
                 # the top pieces is recieved since it could be use to get more accurate results
                 toppiece = resultvector[dv-1][k+1]
@@ -392,7 +443,9 @@ class Result:
                             if(canMatch and canMatchtop):
                                 # if it matchs both of the pieces then add it in possiblepiece
                                 possiblepiece.append([i,j])
-
+                
+                if(len(possibleMatch) == 0):
+                    return ["FAILED"]
                 if(len(possiblepiece)==1):
                     # if their is only one possible match then add it in resultvector 
                     # and move to the next piece 
@@ -401,6 +454,7 @@ class Result:
                     matchside = self.getside(center[possiblepiece[0][0]],"RIGHT")[0]
                     # removing the matched piece to reduce complexity for next piece
                     center.pop(possiblepiece[0][0])
+                    #matchpiece.showImage("MATCHED only 1")
                     
                 else:
                     for j in range(0,len(possiblepiece)):
@@ -419,8 +473,21 @@ class Result:
                         else:
                             endpos = matchside.sampleptreverse
                             startpos = center[possiblepiece[j][0]].side[possiblepiece[j][1]].samplept
+                        
+
+                        if(len(matchside.colourreverse) < len(center[possiblepiece[j][0]].side[possiblepiece[j][1]].colour)):
+                            startc = matchside.colourreverse
+                            endc = center[possiblepiece[j][0]].side[possiblepiece[j][1]].colour
+                        else:
+                            endc = matchside.colourreverse
+                            startc = center[possiblepiece[j][0]].side[possiblepiece[j][1]].colour
+                        graphaColorDiffer = self.colourintotal(startc,endc)
+                        #print("PIEce ", j, "  DIs=  ",Coldis)
+
                         # calculting the different in the graph of the two 
-                        distance =  self.disintotal(startpos,endpos) 
+                        graphaDistance =  self.disintotal(startpos,endpos)  
+                        #print("PIEce ", j, "  distance=  ",distance)
+                        #distance =  self.disintotal(startpos,endpos)  + Coldis
 
                         # getting the start and end point for calculating the distance of the graph
                         if(len(topsideA.sampleptreverse) < len(bottomsideA.samplept)):
@@ -430,46 +497,151 @@ class Result:
                         else:
                             endpos = topsideA.sampleptreverse
                             startpos = bottomsideA.samplept
+
+                        
+                        if(len(topsideA.colourreverse) < len(bottomsideA.colour)):
+                            startc = topsideA.colourreverse
+                            endc = bottomsideA.colour
+                        else:
+                            endc = topsideA.colourreverse
+                            startc = bottomsideA.colour
+                        graphbColorDiffer = self.colourintotal(startc,endc)
+                        #print("PIEce ", j, "  DIs=  ",Coldis)
+
                         # adding the distance between two graph since the match has to have the minimum 
-                        distance =  distance + self.disintotal(startpos,endpos)  
+                        graphbDistance =   self.disintotal(startpos,endpos)
+                        #print("PIEce ", j, "  distance=  ",distance2)
+                        #distance =  distance + self.disintotal(startpos,endpos) +Coldis
+                        
+                        distance = 0
+                        if(useColor and not useShape):
+                            distance = graphaColorDiffer + graphbColorDiffer
+                        elif(useShape and not useColor):
+                            distance =  graphaDistance+graphbDistance
+                        else:
+                            distance =  graphaDistance+graphbDistance + graphaColorDiffer + graphbColorDiffer
+
                         # adding the distance to the possiblepiece
                         possiblepiece[j].append(distance)
+
+                        #possibleMatchm.showImage("center "+str(j))
+                        print("----------------------------------------------------------")
 
                     #getting the piece wîth the smallest distance
                     match = self.smallerdistance(possiblepiece)
                     # adding the matched piece to the resultvector and moving to the next piece
                     resultvector[dv].append(center[match[0]])
                     matchpiece = center[match[0]]
+                    #matchpiece.showImage("MATCHED")
                     matchside = self.getside(center[match[0]],"RIGHT")[0]
                     # removing the matched piece to reduce complexity for next piece
                     center.pop(match[0])
+                #cv2.waitKey(0)
+                #cv2.destroyAllWindows()
         # addin the last column in the resultvector from the macthvector 
         k = 1
         for i in range(len(matchvector[2])-1,0,-1):
             resultvector[k].append(matchvector[2][i][0])
-            k =k +1
-        return [self.showresult(resultvector), resultvector]
+            k =k +1 
+        #print(resultvector)
+        return ["COMPLETE",self.showresult(resultvector), resultvector]
 
     """
         copyes the given image to the target
         the starting location of the image is at x,y in traget
     """
-    def imcopy(self,image,target,x=0,y=0):
+    def imcopy(self,image,target,pieces,x=0,y=0):
         height, width, channels = target.shape 
-        height2, width2, channels2 = image.shape  
-        for i in range(int(x),height2+ int(x)):
-            for j in range(int(y),width2+int(y)):
-                test = image[i-int(x)][j-int(y)]
-                b = test[0]
-                g = test[1]
-                r = test[2]
-                if(b>240 and g>240 and r>240):
-                    test = target[i][j]
-                target[i][j] = test
+        height2, width2, channels2 = image.shape 
+        tmpim= image
+        dst = cv2.fastNlMeansDenoisingColored(tmpim,None,10,20,7,5)
+            #print("hello")
+        #convertinf it into grayscale image
+        gryPiec = cv2.cvtColor(dst,cv2.COLOR_RGB2GRAY)
+        #making the threshold of the grayscaled image
+        ret, threshPie = cv2.threshold(gryPiec, 230, 255, cv2.THRESH_BINARY_INV)
+        #dectecting the contours of the pieces    
+            #print("THREsholld")
+        im2Pi, contoursPi, hierarchyPi = cv2.findContours(threshPie, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
+            
+            #print("contour")
+        var=contoursPi[0]
+        intensities = []
+
+
+
+        cimg = np.zeros_like(tmpim)
+        cv2.drawContours(cimg, contoursPi, 0, color=255, thickness=-1)
+
+            # Access the image pixels and create a 1D numpy array then add to list
+        pts = np.where(cimg == 255)
+        lst_intensities=[]
+        lst_intensities.append(tmpim[pts[0], pts[1]])
+        newpoints = []
+        for i in range(0,len(pts[0])):
+            newpoints.append([pts[1][i],pts[0][i]])
+        pts = newpoints
+        for i in range(0,len(pts)):
+                newx = pts[i][1]+int(x)
+                newy = pts[i][0]+int(y)
+                
+                colo = lst_intensities[0][i]
+                target[newx][newy]  = colo
+        #for i in range(int(x),height2+ int(x)):
+        #    for j in range(int(y),width2+int(y)):
+        #        test = image[i-int(x)][j-int(y)]
+        #        b = test[0]
+        #        g = test[1]
+        #        r = test[2]
+
+        #        #p = path.Path([pieces.listOfPoints])
+        #        #result = p.contains_points([(i-int(x), j-int(y))])
+
+        #        k = -1  
+        #        oldx = i-int(x)
+        #        oldy = j-int(y)
+        #        #print(oldx," ;  ",oldy)
+        #        print("----------------------------------")
+        #        if(len(pts) == 0):
+        #            return
+        #        print(pts)
+        #        newy = pts[0][1]
+        #        newx = pts[0][0]
+        #            #print(newx," ;  ",newy)
+                    
+        #            #if(oldx == newx and oldy == newy ):
+        #            #    k=l 
+        #            #    break
+        #        if(oldx == newx and oldy == newy):
+        #            target[i][j] =lst_intensities[0][0]
+        #            lst_intensities = np.delete(lst_intensities, 0)
+        #            #lst_intensities[0].pop(0)
+        #            pts[0].pop(0)
+        #            pts[1].pop(0)
+        #        else:
+        #            target[i][j] =target[i][j] 
+                #    cimg[pts[0][i]][pts[1][i]] = lst_intensities[0][i]
+                #cv2.imshow("NEW ",cimg)
+                #cv2.waitKey(0)                
+
+
+                #if(b>240 and g>240 and r>240):
+                #    test = target[i][j]
+                #target[i][j] = test
+
+
+                                                                
+
+
+                #cv2.imshow("target ",target)
+                #cv2.waitKey(0)
     """
         returns the width and height of the image 
     """
     def getWidthAndHeight(self,row,column):
+        '''
+            extra width and height given to the window
+        '''
         width = 40
         height = 40
         for i in range(0,len(row)):
@@ -518,31 +690,42 @@ class Result:
                     extra = round(self.getDistance([0,minpoint[1]],minpoint) )
                     Owidth = Owidth -extra
                     
-                self.imcopy(resultimage,newImageAppro,y= Owidth,x=xHeight[j])
+                self.imcopy(resultimage,newImageAppro,resultvector[i][j],y= Owidth,x=xHeight[j])
     
                 minpoint = topside.getmaxcornerpoint()
                 extra = round(self.getDistance([width,minpoint[1]],minpoint) )
 
                 Owidth = Owidth + width -extra
+                print("i  == ",i,"  =  ",resultvector[i-1][j])
+                print("access  == ",i-1," j =  ",j," --  ",resultvector[i-1][j])
                 leftside = self.getside(resultvector[i-1][j],"LEFT")[0] #error here
                 minpoint = leftside.getmaxcornerpoint()
                 extra1 = round(self.getDistance([minpoint[0],height],minpoint)) 
                 xHeight[j] = int(xHeight[j])+int(height)
         return newImageAppro
 
+    """
+        returns the smallest distance object in possibleoutcome
+    """
     def smallerdistance(self,possibleoutcome):
         smallindex = 0
-        smallDis = possibleoutcome[0][2]
+        smallDis = possibleoutcome[0][2] #assuming the first element is the smallest
         for i in range(0,len(possibleoutcome)):
             if(possibleoutcome[i][2] < possibleoutcome[smallindex][2]):
                 smallindex = i
         return possibleoutcome[smallindex]
+    """
+        calculates the difference of the two graph  sent
+    """
     def disintotal(self,grapha,graphb):
-        dis = 0
+        finaldis = 0
+        #goes in the first graph
         for i in range(0,len(grapha)):
             x1 = grapha[i][0]
             y1 = grapha[i][1]
             distance = []
+            #goes for 10 different points in the second graph and uses the 
+            #smaller distance among them
             for j in range(i-5,i+6):
                 if(j>=0 and j < len(graphb)):
                     x2 = graphb[j][0]
@@ -551,27 +734,83 @@ class Result:
                     y = (y1-y2)**2
                     dis = (x + y)**(0.5)
                     distance.append([dis,j])
-            smalldis = [99999,-1]
+            smalldis = [distance[0][0],distance[0][1]]
             for j in range(0,len(distance)):
                 if(distance[j][0]<smalldis[0]):
                     smalldis = distance[j]
-            dis = dis + smalldis[0]
-        return dis
+            finaldis = finaldis + smalldis[0]
+        return finaldis
+
+
+
+    def colourintotal(self,grapha,graphb):
+        finaldis = 0
+        #goes in the first graph
+        for i in range(0,len(grapha)):
+            b1 = grapha[i][0]
+            g1 = grapha[i][1]
+            r1 = grapha[i][2]
+            
+            distance = []
+            #goes for 10 different points in the second graph and uses the 
+            #smaller distance among them
+            for j in range(i-5,i+6):
+                if(j>=0 and j < len(graphb)):
+
+                    
+                    b2 = graphb[i][0]
+                    g2 = graphb[i][1]
+                    r2 = graphb[i][2]
+                    
+# Red Color
+                    color1_rgb = sRGBColor(r1/255, g1/255, b1/255);
+    
+# Blue Color
+                    color2_rgb = sRGBColor(r2/255, g2/255, b2/255);
+
+# Convert from RGB to Lab Color Space
+                    color1_lab = convert_color(color1_rgb, LabColor);
+
+    # Convert from RGB to Lab Color Space
+                    color2_lab = convert_color(color2_rgb, LabColor);
+
+# Find the color difference
+                    delta_e = delta_e_cie2000(color1_lab, color2_lab);
+
+
+
+
+
+                    db = math.fabs(b2-b1)
+                    dg =math.fabs(g2-g1)
+                    dr = math.fabs(r2-r1)
+                    pctb = db/255
+                    pctg = dg/255
+                    pctr = dr/255
+                    #d=((r2-r1)**2+(g2-g1)**2+(b2-b1)**2)**0.5
+                    d = (pctb + pctg +pctr)/3
+                    distance.append([delta_e,j])
+            smalldis = [distance[0][0],distance[0][1]]
+            for j in range(0,len(distance)):
+                if(distance[j][0]<smalldis[0]):
+                    smalldis = distance[j]
+            finaldis = finaldis + smalldis[0]
+        return finaldis
 
 
     def showSubsample(self,point,pointb,name):
         newImageAppro1 = np.zeros((500,500,3), np.uint8)
-        for i in range(0,len(point[0])-1):
-            x1 = point[0][i]
-            y1 = point[1][i]
-            x2 = point[0][i+1]
-            y2 = point[1][i+1]
+        for i in range(0,len(point)-1):
+            x1 = point[i][0]
+            y1 = point[i][1]
+            x2 = point[i+1][0]
+            y2 = point[i+1][1]
             cv2.line(newImageAppro1,(int(x1),int(y1)),(int(x2),int(y2)), (255,255,255), 1)
-        for i in range(0,len(pointb[0])-1):
-            x1 = pointb[0][i]
-            y1 = pointb[1][i]
-            x2 = pointb[0][i+1]  
-            y2 = pointb[1][i+1]
+        for i in range(0,len(pointb)-1):
+            x1 = pointb[i][0]
+            y1 = pointb[i][1]
+            x2 = pointb[i+1][0]
+            y2 = pointb[i+1][1]
             cv2.line(newImageAppro1,(int(x1),int(y1)),(int(x2),int(y2)), (0,0,255), 1)
         cv2.imshow(name,newImageAppro1)
                     

@@ -27,7 +27,10 @@ class pieces:
         self.pointC = []
         self.pointD = []
         self.name = ""
-
+        self.listOfPoints = []
+    def setPoints(self,contoursPi):
+        for i in range(0,len(contoursPi[0])):
+            self.listOfPoints.append((contoursPi[0][i][0][0],contoursPi[0][i][0][1]))
     # returns the linear equation for given two points
     def LinerEquation(self,point1,point2):
         x1 = point1[0]
@@ -302,6 +305,7 @@ class pieces:
             ret, threshPie = cv2.threshold(gryPiec, 230, 255, cv2.THRESH_BINARY_INV)
         #dectecting the contours of the pieces    
             im2Pi, contoursPi, hierarchyPi = cv2.findContours(threshPie, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
+            self.setPoints(contoursPi)
         #making the contours of same colour and the background of same colour
             newImageAppro = np.zeros((500,500,3), np.uint8)  
             Directions=[]
@@ -635,6 +639,8 @@ class pieces:
                     if(cornerFound):
                         break
                     j=j+1
+            if(self.corners == []):
+                return "CORNER_NOT_FOUND"
             #cv2.imshow("Thks dsadvakcndlkadlc",newImageAppro)
             #cv2.imshow("Thks dv",tmpim)
             #cv2.waitKey(0);
@@ -646,7 +652,7 @@ class pieces:
 #giving contour here 
            
             self.setPropertyOfCorner(approx,contoursPi,test)
-
+            return "COMPLETE"
 
 
 
@@ -995,8 +1001,237 @@ class pieces:
         #if(maxangle - minangle <60):
         #    return True 
         #return False
-    
-    def showImage(self,name):
+    def testinginnercontour(self):
             tmpim=self.image
-            cv2.imshow(name,tmpim)
+#denosing the image of each piece (Actually one piece)
+            dst = cv2.fastNlMeansDenoisingColored(tmpim,None,10,20,7,5)
+            #print("hello")
+        #convertinf it into grayscale image
+            gryPiec = cv2.cvtColor(dst,cv2.COLOR_RGB2GRAY)
+        #making the threshold of the grayscaled image
+            ret, threshPie = cv2.threshold(gryPiec, 230, 255, cv2.THRESH_BINARY_INV)
+        #dectecting the contours of the pieces    
+            #print("THREsholld")
+            im2Pi, contoursPi, hierarchyPi = cv2.findContours(threshPie, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
+            
+            #print("contour")
+            var=contoursPi[0]
+            intensities = []
+
+
+
+
+            #print("makeing arryy")
+            cimg12 = np.zeros_like(tmpim)
+            cv2.drawContours(cimg12, contoursPi, 0, color=255, thickness=12)
+            pts12 = np.where(cimg12 == 255)
+
+            cimg_1 = np.zeros_like(tmpim)
+            cv2.drawContours(cimg_1, contoursPi, 0, color=255, thickness=-5)
+            pts_1 = np.where(cimg_1 == 255)
+
+            cimg13 = np.zeros_like(tmpim)
+            cv2.drawContours(cimg13, contoursPi, 0, color=255, thickness=13)
+            pts13 = np.where(cimg13 == 255)
+
+
+            #print("arranging arryy")
+            pts_1 = self.arrangethepoints(pts_1)
+            pts13 = self.arrangethepoints(pts13)
+            pts12 = self.arrangethepoints(pts12)
+
+            #print("calculating arryy")
+            pts15  = [x for x in pts13 if not x in pts12 and x in pts_1]
+
+
+
+            #print("fiting arryy")
+            testing = np.zeros_like(tmpim)
+            for i in range(0,len(pts15)):
+                cv2.circle(testing,(int(pts15[i][1]),int(pts15[i][0])), 1, (255,255,255), 1)
+                #cv2.imshow("testing",testing)
+                #cv2.waitKey(0)
+            gryPiec = cv2.cvtColor(testing,cv2.COLOR_RGB2GRAY)
+            ret, threshPie = cv2.threshold(gryPiec, 230, 255, cv2.THRESH_BINARY)
+            #cv2.imshow("threshPie",threshPie)
+            im2Pi, contoursPi, hierarchyPi = cv2.findContours(threshPie, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
+
+            sidea =self.getside("TOP")[0]
+            if(not sidea.isStraight):
+                self.setcolour(sidea,contoursPi)
+            sidea =self.getside("BOTTOM")[0]
+            if(not sidea.isStraight):
+                self.setcolour(sidea,contoursPi)
+            sidea =self.getside("RIGHT")[0]
+            if(not sidea.isStraight):
+                self.setcolour(sidea,contoursPi)
+            sidea =self.getside("LEFT")[0]
+            if(not sidea.isStraight):
+                self.setcolour(sidea,contoursPi)
+
+
+    def setcolour(self,sidea,contoursPi):       
+            cornerR = sidea.cornerRight
+            cornerL = sidea.cornerLeft
+            start = []
+            end = []
+            stat = 0
+            end2 = 0
+            for i in range(0,len(contoursPi[0])):
+                #print("---------------------------------")
+                point = contoursPi[0][i][0]
+                start.append(self.getDistance(point,[cornerR[0],cornerR[1]]))
+                end.append(self.getDistance(point,[cornerL[0],cornerL[1]]))
+
+                if(start[stat] > start[i]):
+                    stat = i
+                if(end[end2] > end[i]):
+                    end2 = i
+                #cv2.circle(tmpim,(point[0],point[1]), 3, (0,0,0), 1)
+                #cv2.imshow("LESsd ",tmpim)
+                #cv2.waitKey(0)
+
+            #stat = 0
+            #end2 = 0
+            #for i in range(0,len(contoursPi[0])):
+            #    if(start[stat] > start[i]):
+            #        stat = i
+            #    if(end[end2] > end[i]):
+            #        end2 = i
+
+            points = []
+            #print(stat)
+            #print(end2)
+            while(stat!=end2):
+                points.append(contoursPi[0][stat][0])
+                stat = stat+1
+                if(stat>=len(contoursPi[0])):
+                    stat=0
+            #cv2.drawContours( contourss, contoursPi[0], -1, (0,0,255), -1)
+            #cv2.imshow("contours",contourss)
+            newpoints = []
+            if(sidea.whichaxis == "X"):
+                newpoints=sidea.subsamplingxaxis(points)
+            elif(sidea.whichaxis == "Y"):
+                newpoints=sidea.subsamplingyaxis(points)
+
+            newpoints = sidea.arrangethepoints(newpoints)
+
+            #contourbgr= np.zeros_like(self.image)
+            #self.showImage("REAL ONE")
+            colour = []
+            for i in range(0,len(newpoints)):
+                pot = newpoints[i]
+                b = int(self.image[pot[1]][pot[0]][0])
+                g = int(self.image[pot[1]][pot[0]][1])
+                r = int(self.image[pot[1]][pot[0]][2])
+                colour.append([b,g,r])
+            sidea.colour = colour
+            sidea.colourreverse = colour[::-1]
+            #cv2.waitKey(0)
+
+
+            #cv2.circle(tmpim,(int(cornerR[0]),int(cornerR[1])), 3, (0,0,0), 1)
+            #cv2.circle(tmpim,(int(cornerL[0]),int(cornerL[1])), 3, (0,0,0), 1)
+            #print("int(cornerR[0]),int(cornerR[1]) = ",int(cornerR[0]),int(cornerR[1]))
+            #print("int(cornerL[0]),int(cornerL[1]) = ",int(cornerL[0]),int(cornerL[1])  )
+
+            #cv2.circle(tmpim,(int(pts8[stat][1]),int(pts8[stat][0])), 3, (0,0,0), 1)
+            #cv2.circle(tmpim,(int(pts8[end2][1]),int(pts8[end2][0])), 3, (0,0,0), 1)
+            #self.showImage("testestereal")
+
+
+    def getside(self,direction):
+        # getting all the side of the piece
+        sidea = self.side[0]
+        sideb = self.side[1]
+        sidec = self.side[2]
+        sided = self.side[3]
+        #checking which direction it is and returning the side
+        if(sidea.direction == direction):  
+            return [sidea,0]
+        if(sideb.direction == direction):  
+            return [sideb,1]
+        if(sidec.direction == direction): 
+            return [sidec,2]
+        if(sided.direction == direction): 
+            return [sided,3]
+    def arrangethepoints(self,pointa):
+        point = []
+        for i in range(0,len(pointa[0])):       
+            point.append([pointa[0][i],pointa[1][i]])
+        return point
+#    def rearrangethepoints(self,pointa):
+
+#        In [1]: a = np.array([1, 2, 3])
+
+#In [2]: b = np.array([4, 5, 6])
+
+#In [3]: np.vstack((a, b))
+#Out[3]: 
+#array([[1, 2, 3],
+#       [4, 5, 6]])
         
+#        a = []
+#        b = []
+#        for i in range(0,len(pointa)):
+#            c[0].append([[pointa[i][0],pointa[i][1]]])
+#        #for i in range(0,len(pointa[0])):    
+#        #    point[0].append(point[i][0])     
+#        #    point[1].append(point[i][1])   
+#        return c
+#lst_intensities = []
+
+## For each list of contour points...
+#for i in range(len(contours)):
+#    # Create a mask image that contains the contour filled in
+#    cimg = np.zeros_like(img)
+#    cv2.drawContours(cimg, contours, i, color=255, thickness=-1)
+
+#    # Access the image pixels and create a 1D numpy array then add to list
+#    pts = np.where(cimg == 255)
+#    lst_intensities.append(img[pts[0], pts[1]])
+
+    def showImage(self,name):
+
+            tmpim=self.image
+#denosing the image of each piece (Actually one piece)
+            dst = cv2.fastNlMeansDenoisingColored(tmpim,None,10,20,7,5)
+            #print("hello")
+        #convertinf it into grayscale image
+            gryPiec = cv2.cvtColor(dst,cv2.COLOR_RGB2GRAY)
+        #making the threshold of the grayscaled image
+            ret, threshPie = cv2.threshold(gryPiec, 230, 255, cv2.THRESH_BINARY_INV)
+        #dectecting the contours of the pieces    
+            #print("THREsholld")
+            im2Pi, contoursPi, hierarchyPi = cv2.findContours(threshPie, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
+            
+            #print("contour")
+            var=contoursPi[0]
+            intensities = []
+
+
+
+            cimg = np.zeros_like(tmpim)
+            cv2.drawContours(cimg, contoursPi, 0, color=255, thickness=-1)
+
+            # Access the image pixels and create a 1D numpy array then add to list
+            pts = np.where(cimg == 255)
+            lst_intensities=[]
+            lst_intensities.append(tmpim[pts[0], pts[1]])
+
+
+            cimg = np.zeros_like(tmpim)
+            for i in range(0,len(pts[0])):
+                colour = tmpim[pts[0][i]][pts[1][i]]
+                cimg[pts[0][i]][pts[1][i]] = lst_intensities[0][i]
+                cv2.imshow("NEW ",cimg)
+                cv2.waitKey(0)
+            #mask = 
+            #tmpim=self.image
+            height, width, channels = tmpim.shape 
+            print("height =", height)
+            print("width =", width)
+            cv2.imshow(name,tmpim)
+            cv2.imshow("NEW ",cimg)
+            cv2.waitKey(0)
